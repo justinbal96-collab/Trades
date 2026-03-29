@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: nq-dashboard-api
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: BACKTEST_RANGE_5M
+        value: 20d
+      - key: QPO_RANGE_5M
+        value: 20d
+      - key: SIGNAL_MIX_LOOKBACK_BARS
+        value: "120"
+
+  - type: worker
+    name: nq-trade-alert-worker
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/sms_trade_notifier.py --channel ntfy --poll-sec 5
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: NQ_DASHBOARD_API_URL
+        value: https://REPLACE-WITH-YOUR-API-SERVICE.onrender.com/api/dashboard
+      - key: NQ_ALERT_CHANNEL
+        value: ntfy
+      - key: NQ_REQUIRE_ELIGIBLE
+        value: "true"
+      - key: NQ_SEND_EVERY_DIRECTIONAL
+        value: "false"
+      - key: NQ_ALERT_POLL_SEC
+        value: "5"
+      - key: NQ_ALERT_STATE_FILE
+        value: /tmp/nq_sms_alert_state.json
+      - key: NTFY_SERVER
+        value: https://ntfy.sh
+      - key: NTFY_TOPIC
+        sync: false
+      - key: NTFY_TITLE
+        value: NQ Trade Alert
+      - key: NTFY_PRIORITY
+        value: "4"
+      - key: NTFY_TAGS
+        value: chart_with_upwards_trend,rotating_light
+      - key: NTFY_TOKEN
+        sync: false

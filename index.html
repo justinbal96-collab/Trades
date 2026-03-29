@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eigenstate Dashboard Clone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./app.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="./site-config.js"></script>
+    <script type="module">
+      const version = "20260329b";
+      const mountError = () => {
+        const root = document.getElementById("root");
+        if (!root) return;
+        root.innerHTML =
+          "<pre style='padding:16px;color:#ff7b7b;font-family:monospace'>App bundle missing. Upload app.js (or dist/app.js) to GitHub Pages.</pre>";
+      };
+
+      const fallback = document.createElement("script");
+      fallback.type = "module";
+      fallback.src = `./dist/app.js?v=${version}`;
+      fallback.onerror = mountError;
+
+      const primary = document.createElement("script");
+      primary.type = "module";
+      primary.src = `./app.js?v=${version}`;
+      primary.onerror = () => document.body.appendChild(fallback);
+
+      document.body.appendChild(primary);
+    </script>
+  </body>
+</html>

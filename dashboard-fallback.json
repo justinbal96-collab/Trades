@@ -1,0 +1,463 @@
+{
+    "meta": {
+        "symbol": "NQ=F",
+        "as_of_et": "17:00:00 ET",
+        "last_price": 23328.5
+    },
+    "headline": "Short-term continuation favored while volatility compresses.",
+    "subheadline": "Fallback snapshot mode on GitHub Pages. Set site-config.js to your deployed /api/dashboard URL for live quant updates.",
+    "watchlist": [
+        {
+            "symbol": "NQ",
+            "change_pct": -2.92
+        },
+        {
+            "symbol": "ES",
+            "change_pct": -1.94
+        },
+        {
+            "symbol": "RTY",
+            "change_pct": 0.86
+        },
+        {
+            "symbol": "VX",
+            "change_pct": 2.99
+        }
+    ],
+    "filters": [
+        {
+            "label": "US Session",
+            "active": true
+        },
+        {
+            "label": "News Lock",
+            "active": false
+        },
+        {
+            "label": "Volatility Gate",
+            "active": true
+        }
+    ],
+    "health": {
+        "model": "Healthy",
+        "feed": "Snapshot",
+        "drift": "--"
+    },
+    "risk": {
+        "account_size": 50000,
+        "allocated_pct": 53
+    },
+    "execution_plan": {
+        "eligible": true,
+        "action_next_bar": "SELL",
+        "current_position": "SELL",
+        "signal_changed": false,
+        "as_of_et": "17:00:00 ET",
+        "next_bar_et": "17:05:00 ET",
+        "entry_reference": 23328.5,
+        "stop_price": 23355.5,
+        "target_price": 23285.25,
+        "risk_per_trade_usd": 250,
+        "contract_plan": {
+            "nq": 0,
+            "mnq": 2,
+            "risk_per_nq_usd": 540,
+            "risk_per_mnq_usd": 54,
+            "sleeve_weight": 0.53
+        },
+        "prop_rules": {
+            "max_trades_per_day": 9,
+            "trades_today": 5,
+            "daily_model_pnl_usd": 786.74,
+            "daily_loss_limit_usd": 1000,
+            "checks": [
+                {
+                    "name": "Signal Is Directional",
+                    "pass": true,
+                    "detail": "Next-bar signal is SELL."
+                },
+                {
+                    "name": "Size Is Tradable",
+                    "pass": true,
+                    "detail": "Suggested size NQ 0 / MNQ 2."
+                },
+                {
+                    "name": "Daily Trade Cap",
+                    "pass": true,
+                    "detail": "5/9 signal changes today."
+                },
+                {
+                    "name": "Daily Loss Guard",
+                    "pass": true,
+                    "detail": "Model day PnL $786.74 vs limit -$1,000.00."
+                }
+            ]
+        },
+        "backtest_window": {
+            "start_et": "2026-03-06 00:05:00 ET",
+            "end_et": "2026-03-27 16:59:59 ET",
+            "range_5m": "20d",
+            "bars": 4325,
+            "sessions_equiv": 55.45,
+            "trades": 73,
+            "trades_per_session": 1.32,
+            "avg_return_per_trade_pct": 0.2256
+        },
+        "notes": "Snapshot fallback for GitHub Pages. Configure a live backend URL to resume streaming updates."
+    },
+    "kpis": {
+        "forecast_confidence_pct": 75.94,
+        "expected_session_return_pct": 1.07,
+        "projected_max_drawdown_pct": -1.67,
+        "sharpe_rolling_20": 5.87,
+        "max_drawdown_pct": -2.0,
+        "total_return_pct": 16.47,
+        "win_rate_pct": 50.99,
+        "n_trades": 73
+    },
+    "forecast": {
+        "points": [
+            23482.0,
+            23478.0,
+            23453.75,
+            23473.75,
+            23509.25,
+            23481.0,
+            23473.5,
+            23460.5,
+            23486.5,
+            23466.25,
+            23435.75,
+            23422.5,
+            23380.5,
+            23402.25,
+            23389.25,
+            23368.75,
+            23364.0,
+            23366.5,
+            23360.25,
+            23354.75,
+            23337.0,
+            23346.5,
+            23368.75,
+            23351.5,
+            23362.0,
+            23367.75,
+            23361.0,
+            23366.5,
+            23349.0,
+            23335.0,
+            23340.0,
+            23322.25,
+            23318.75,
+            23334.25,
+            23353.75,
+            23348.0,
+            23331.25,
+            23347.5,
+            23329.5,
+            23313.25,
+            23301.0,
+            23309.0,
+            23309.0,
+            23290.25,
+            23289.25,
+            23279.75,
+            23262.5,
+            23255.0,
+            23257.25,
+            23249.25,
+            23262.25,
+            23259.25,
+            23261.5,
+            23275.5,
+            23254.25,
+            23328.5
+        ],
+        "horizon_label": "5m horizon \u2022 fallback snapshot"
+    },
+    "regimes": [
+        {
+            "kind": "bear",
+            "label": "Sweep"
+        },
+        {
+            "kind": "neutral",
+            "label": "Balance"
+        },
+        {
+            "kind": "bear",
+            "label": "Liquidation"
+        },
+        {
+            "kind": "neutral",
+            "label": "Range"
+        },
+        {
+            "kind": "neutral",
+            "label": "Absorb"
+        },
+        {
+            "kind": "neutral",
+            "label": "Balance"
+        },
+        {
+            "kind": "bear",
+            "label": "Liquidation"
+        },
+        {
+            "kind": "bull",
+            "label": "Drive"
+        }
+    ],
+    "allocation": {
+        "rows": [
+            {
+                "sleeve": "Long Signal",
+                "weight": 0.0,
+                "expected_return_pct": 0.132,
+                "cvar_loss_pct": 0.097,
+                "daily_var_pct": -0.0,
+                "status": "Active"
+            },
+            {
+                "sleeve": "Short Signal",
+                "weight": 0.53,
+                "expected_return_pct": 0.179,
+                "cvar_loss_pct": 0.108,
+                "daily_var_pct": -0.057,
+                "status": "Hedge"
+            },
+            {
+                "sleeve": "Cash Buffer",
+                "weight": 0.47,
+                "expected_return_pct": 0.0,
+                "cvar_loss_pct": 0.0,
+                "daily_var_pct": 0.0,
+                "status": "Reserve"
+            }
+        ]
+    },
+    "events": [
+        {
+            "time": "17:00",
+            "message": "GitHub fallback snapshot loaded."
+        },
+        {
+            "time": "17:00",
+            "message": "Set site-config.js to your backend /api/dashboard URL for live data."
+        }
+    ],
+    "signals": [
+        {
+            "time": "16:45",
+            "close": 23261.5,
+            "signal": "SELL",
+            "bar_return_pct": 0.0097,
+            "strategy_return_pct": -0.0097
+        },
+        {
+            "time": "16:50",
+            "close": 23275.5,
+            "signal": "SELL",
+            "bar_return_pct": 0.0602,
+            "strategy_return_pct": -0.0602
+        },
+        {
+            "time": "16:55",
+            "close": 23254.25,
+            "signal": "SELL",
+            "bar_return_pct": -0.0913,
+            "strategy_return_pct": 0.0913
+        },
+        {
+            "time": "16:59",
+            "close": 23328.5,
+            "signal": "SELL",
+            "bar_return_pct": 0.3193,
+            "strategy_return_pct": -0.3193
+        }
+    ],
+    "signal_mix": {
+        "buy": 0,
+        "sell": 114,
+        "hold": 6
+    },
+    "signal_mix_lookback_bars": 120,
+    "config": {
+        "cvar_alpha": 0.95,
+        "risk_aversion": 3.0
+    },
+    "pdf_trend": {
+        "bias": -1,
+        "momentum_lookback_days": 63,
+        "momentum_return_pct": -9.86,
+        "realized_ann_vol_pct": 17.47,
+        "target_ann_vol_pct": 12.0,
+        "target_leverage": 0.69
+    },
+    "repo_sources": [
+        {
+            "name": "NVIDIA QPO",
+            "status": "Integrated",
+            "path": "quantitative-portfolio-optimization",
+            "detail": "LOG returns + Gaussian scenarios + CVaR objective"
+        },
+        {
+            "name": "KX Distillation",
+            "status": "Integrated",
+            "path": "nvidia-kx-samples/ai-model-distillation-for-financial-data",
+            "detail": "FinGPT labels + backtest_config + BUY/SELL/HOLD mapping"
+        }
+    ],
+    "distillation_stats": {
+        "dataset_records": 500,
+        "seed_records": 200,
+        "label_mix": {
+            "positive": 135,
+            "negative": 92,
+            "neutral": 273
+        },
+        "direction_mix": {
+            "BUY": 135,
+            "SELL": 92,
+            "HOLD": 273
+        },
+        "top_symbols": [
+            {
+                "symbol": "NQ",
+                "count": 407
+            },
+            {
+                "symbol": "TSLA",
+                "count": 6
+            },
+            {
+                "symbol": "FB",
+                "count": 6
+            },
+            {
+                "symbol": "NFLX",
+                "count": 4
+            }
+        ],
+        "samples": [
+            {
+                "sym": "NQ",
+                "direction": "HOLD",
+                "text": "Distilled sample signal"
+            }
+        ],
+        "config": {
+            "cost_bps": 5,
+            "effective_cost_bps": 5,
+            "min_signals": 10,
+            "hold_period": "1D",
+            "hold_bars_5m": 78,
+            "alpha": 0.95,
+            "risk_aversion": 3.0,
+            "max_sleeve_weight": 0.8
+        },
+        "backtest": {
+            "sharpe": -0.03,
+            "max_drawdown": -0.2785,
+            "total_return": -0.1594,
+            "win_rate": 0.21,
+            "n_trades": 227
+        },
+        "cvar_sized": {
+            "weights": {
+                "long_signal": 0.05,
+                "short_signal": 0.15,
+                "cash": 0.8
+            },
+            "objective": -0.0065,
+            "expected_return": 6e-06,
+            "cvar_loss": 0.00218,
+            "sharpe": 0.01,
+            "max_drawdown": -0.0465,
+            "total_return": 0.00255,
+            "win_rate": 0.218,
+            "n_trades": 227
+        }
+    },
+    "kx_confluence": {
+        "enabled": true,
+        "quality": 0.03,
+        "sentiment_bias": 0.19,
+        "long_relax": 1.0,
+        "short_boost": 1.0,
+        "cvar_sharpe": 0.01,
+        "backtest_sharpe": -0.03,
+        "cvar_total_return": 0.00255
+    },
+    "portfolio_optimization_stats": {
+        "assets": [
+            "NQ=F",
+            "ES=F",
+            "RTY=F",
+            "^VIX"
+        ],
+        "return_type": "LOG",
+        "fit_type": "gaussian",
+        "confidence": 0.95,
+        "scenario_count": 600,
+        "covariance_trace": 0.000125,
+        "optimal_weights": [
+            {
+                "symbol": "NQ",
+                "raw_symbol": "NQ=F",
+                "weight": 0.4
+            },
+            {
+                "symbol": "ES",
+                "raw_symbol": "ES=F",
+                "weight": 0.4
+            },
+            {
+                "symbol": "RTY",
+                "raw_symbol": "RTY=F",
+                "weight": 0.2
+            },
+            {
+                "symbol": "VX",
+                "raw_symbol": "^VIX",
+                "weight": 0.0
+            }
+        ],
+        "frontier": [
+            {
+                "risk_aversion": 0.5,
+                "expected_return_pct": -0.174,
+                "cvar_loss_pct": 0.174,
+                "objective": -0.000891
+            },
+            {
+                "risk_aversion": 1.0,
+                "expected_return_pct": -0.174,
+                "cvar_loss_pct": 0.174,
+                "objective": -0.001759
+            },
+            {
+                "risk_aversion": 2.0,
+                "expected_return_pct": -0.174,
+                "cvar_loss_pct": 0.174,
+                "objective": -0.003496
+            },
+            {
+                "risk_aversion": 3.0,
+                "expected_return_pct": -0.174,
+                "cvar_loss_pct": 0.174,
+                "objective": -0.005232
+            },
+            {
+                "risk_aversion": 4.0,
+                "expected_return_pct": -0.174,
+                "cvar_loss_pct": 0.174,
+                "objective": -0.006969
+            }
+        ],
+        "window_start": "2026-03-06T08:15:00+00:00",
+        "window_end": "2026-03-27T20:15:00+00:00"
+    }
+}
