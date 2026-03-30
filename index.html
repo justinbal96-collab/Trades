@@ -16,7 +16,17 @@
     <div id="root"></div>
     <script src="./site-config.js"></script>
     <script type="module">
-      const version = "20260329b";
+      const legacyHashMap = {
+        "#signals": "#/signals",
+        "#risk": "#/risk",
+        "#dashboard": "#/",
+      };
+      const fixedHash = legacyHashMap[window.location.hash];
+      if (fixedHash) {
+        window.location.replace(`${window.location.pathname}${window.location.search}${fixedHash}`);
+      }
+
+      const version = "20260330c";
       const mountError = () => {
         const root = document.getElementById("root");
         if (!root) return;
