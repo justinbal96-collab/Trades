@@ -1,0 +1,70 @@
+name: Deploy GitHub Pages (Prebuilt)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-prebuilt
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage static site from prebuilt assets
+        run: |
+          set -euo pipefail
+          mkdir -p _site/dist _site/data
+          cp index.html app.css site-config.js dashboard-fallback.json _site/
+
+          if [ -f app.js ]; then
+            cp app.js _site/app.js
+          fi
+          if [ -f app.js.map ]; then
+            cp app.js.map _site/app.js.map
+          fi
+
+          if [ -f dist/app.js ]; then
+            cp dist/app.js _site/dist/app.js
+          elif [ -f app.js ]; then
+            cp app.js _site/dist/app.js
+          else
+            echo "Missing both dist/app.js and app.js"
+            exit 1
+          fi
+
+          if [ -f dist/app.js.map ]; then
+            cp dist/app.js.map _site/dist/app.js.map
+          elif [ -f app.js.map ]; then
+            cp app.js.map _site/dist/app.js.map
+          fi
+
+          if [ -d data ]; then
+            cp -R data/. _site/data/
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
