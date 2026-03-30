@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -31,6 +32,10 @@ MNQ_POINT_VALUE_USD = 2.0
 
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+# Keep published snapshots pinned to the validated benchmark setup.
+os.environ.setdefault("BACKTEST_RANGE_5M", "60d")
+os.environ.setdefault("QPO_RANGE_5M", "60d")
 
 import server  # noqa: E402
 

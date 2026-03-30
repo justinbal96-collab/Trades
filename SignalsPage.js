@@ -1,5 +1,46 @@
 import { html } from "../lib.js";
 
+function _formatEtFromUnix(unixSec) {
+  const n = Number(unixSec);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const dt = new Date(n * 1000);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(dt);
+  const pick = (type) => parts.find((p) => p.type === type)?.value || "";
+  const y = pick("year");
+  const m = pick("month");
+  const d = pick("day");
+  const hh = pick("hour");
+  const mm = pick("minute");
+  const ss = pick("second");
+  if (!y || !m || !d || !hh || !mm || !ss) return null;
+  return `${y}-${m}-${d} ${hh}:${mm}:${ss} ET`;
+}
+
+function _formatTradeEt(row, side) {
+  const isEntry = side === "entry";
+  const label = isEntry
+    ? row.entry_time_et || row.entry_et
+    : row.exit_time_et || row.exit_et;
+  if (typeof label === "string" && /^\d{4}-\d{2}-\d{2}\s/.test(label)) {
+    return label;
+  }
+  const unixRaw = isEntry
+    ? row.entry_unix ?? row.entry_time_unix
+    : row.exit_unix ?? row.exit_time_unix;
+  const fromUnix = _formatEtFromUnix(unixRaw);
+  if (fromUnix) return fromUnix;
+  return label || "--";
+}
+
 export function SignalsPage({ data }) {
   const signals = data.signals || [];
   const latest = data.kpis || {};
@@ -139,8 +180,8 @@ export function SignalsPage({ data }) {
               ${historyRows.map(
                 (row) => html`
                   <tr key=${row.trade_id || row.event_id || `${row.entry_time_et || row.entry_et}-${row.exit_time_et || row.exit_et}`}>
-                    <td>${row.entry_time_et || row.entry_et || "--"}</td>
-                    <td>${row.exit_time_et || row.exit_et || "--"}</td>
+                    <td>${_formatTradeEt(row, "entry")}</td>
+                    <td>${_formatTradeEt(row, "exit")}</td>
                     <td>
                       <span className=${String(row.direction || "").includes("LONG") ? "tag live" : "tag"}
                         >${row.direction || row.action || "--"}</span

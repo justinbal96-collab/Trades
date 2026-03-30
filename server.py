@@ -15,7 +15,7 @@ import os
 import re
 import statistics
 import time
-from datetime import datetime, timezone
+from datetime import datetime, time as dt_time, timedelta, timezone
 from functools import lru_cache
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -32,9 +32,22 @@ WORKSPACE_DIR = BASE_DIR.parent
 QPO_DIR = WORKSPACE_DIR / "quantitative-portfolio-optimization"
 QPO_SRC_DIR = QPO_DIR / "src"
 KX_DIR = WORKSPACE_DIR / "nvidia-kx-samples" / "ai-model-distillation-for-financial-data"
-KX_CONFIG_FILE = KX_DIR / "config" / "config.yaml"
-KX_FINGPT_FILE = KX_DIR / "data" / "fingpt_sentiment_1k.jsonl"
-KX_TEST_FILE = KX_DIR / "data" / "test_financial_data.jsonl"
+KX_REPO_DIR = BASE_DIR / "data" / "kx"
+KX_CONFIG_FILE = (
+    KX_DIR / "config" / "config.yaml"
+    if (KX_DIR / "config" / "config.yaml").exists()
+    else KX_REPO_DIR / "config.yaml"
+)
+KX_FINGPT_FILE = (
+    KX_DIR / "data" / "fingpt_sentiment_1k.jsonl"
+    if (KX_DIR / "data" / "fingpt_sentiment_1k.jsonl").exists()
+    else KX_REPO_DIR / "fingpt_sentiment_1k.jsonl"
+)
+KX_TEST_FILE = (
+    KX_DIR / "data" / "test_financial_data.jsonl"
+    if (KX_DIR / "data" / "test_financial_data.jsonl").exists()
+    else KX_REPO_DIR / "test_financial_data.jsonl"
+)
 TRADE_LOG_DIR = BASE_DIR / "trade_logs"
 TRADE_JOURNAL_JSONL = TRADE_LOG_DIR / "nq_trade_journal.jsonl"
 TRADE_JOURNAL_CSV = TRADE_LOG_DIR / "nq_trade_journal.csv"
@@ -50,6 +63,12 @@ NQ_POINT_VALUE_USD = 20.0
 MNQ_POINT_VALUE_USD = 2.0
 BACKTEST_RANGE_5M = os.environ.get("BACKTEST_RANGE_5M", "20d")
 QPO_RANGE_5M = os.environ.get("QPO_RANGE_5M", BACKTEST_RANGE_5M)
+FREEZE_TO_LAST_CLOSED_SESSION = os.environ.get("FREEZE_TO_LAST_CLOSED_SESSION", "0").strip().lower() not in {
+    "",
+    "0",
+    "false",
+    "no",
+}
 try:
     SIGNAL_MIX_LOOKBACK_BARS = max(30, int(os.environ.get("SIGNAL_MIX_LOOKBACK_BARS", "120")))
 except ValueError:
@@ -67,26 +86,30 @@ except ValueError:
 
 # Tuned on recent 5m NQ bars to reduce churn and improve risk-adjusted behavior.
 LIVE_SIGNAL_CONFIG = {
-    "momentum_window": 20,
-    "volatility_window": 20,
+    "momentum_window": 28,
+    "volatility_window": 36,
     "trend_window": 40,
-    "momentum_threshold": 6.835213582643187e-05,
-    "volatility_quantile_cap": 0.5632166096768975,
-    "countertrend_multiplier": 2.391743295801952,
-    "min_hold_bars": 55,
-    "macro_countertrend_allow_multiplier": 1.583087646286099,
-    "trend_regime_multiplier": 2.0689974609755026,
-    "neutral_regime_multiplier": 3.447992654799003,
-    "high_volatility_multiplier": 1.4647978052726507,
-    "short_entry_multiplier": 1.1928091553913953,
-    "disable_longs_when_macro_short": False,
+    "momentum_threshold": 0.00018438018909355784,
+    "volatility_quantile_cap": 0.678158976884079,
+    "countertrend_multiplier": 3.750302668873535,
+    "min_hold_bars": 2,
+    "macro_countertrend_allow_multiplier": 2.2820783813623478,
+    "trend_regime_multiplier": 0.8330451096715936,
+    "neutral_regime_multiplier": 0.8593827413076662,
+    "high_volatility_multiplier": 0.8105921662713327,
+    "short_entry_multiplier": 2.141057748532962,
+    "disable_longs_when_macro_short": True,
     "use_kx_confluence": False,
     "kx_confluence_strength": 0.42450751038322526,
     "kx_quality_floor": 0.08502140842228272,
-    "trade_cooldown_bars": 2,
+    "trade_cooldown_bars": 6,
     "use_daily_loss_guard": True,
     "daily_loss_limit_pct": 0.8905184413162852,
     "max_trades_per_day": 12,
+    "enforce_same_day_trades": True,
+    "max_hold_minutes": 90,
+    "max_active_trade_loss_usd": 500.0,
+    "intrabar_stop_touch": True,
 }
 
 PDF_TREND_CONFIG = {
@@ -104,6 +127,8 @@ PROP_EXECUTION_CONFIG = {
     "max_mnq_contracts": 30,
     "target_rr": 1.6,
 }
+TRADING_SESSION_OPEN_ET = dt_time(18, 0, 0)
+TRADING_SESSION_FLAT_TIME_ET = dt_time(16, 55, 0)
 
 
 try:
@@ -124,6 +149,53 @@ def _format_et(ts: int | float) -> str:
 
 def _format_et_trade(ts: int | float) -> str:
     return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ).strftime("%Y-%m-%d %H:%M:%S ET")
+
+
+def _trading_session_id(et_dt: datetime) -> str:
+    session_date = et_dt.date()
+    if et_dt.time() >= TRADING_SESSION_OPEN_ET:
+        session_date = session_date + timedelta(days=1)
+    return session_date.isoformat()
+
+
+def _is_within_trading_session_window(et_dt: datetime) -> bool:
+    t = et_dt.time()
+    # NQ futures session day: opens 18:00 ET (prior calendar day), closes 17:00 ET.
+    # We flatten by 16:55 ET to avoid carrying into the close/maintenance break.
+    return bool(t >= TRADING_SESSION_OPEN_ET or t < TRADING_SESSION_FLAT_TIME_ET)
+
+
+def _resolve_evaluation_end_index(timestamps: list[int]) -> int:
+    """Pick the last fully-closed weekday regular session bar when freeze mode is enabled."""
+    if not timestamps:
+        return -1
+    if not FREEZE_TO_LAST_CLOSED_SESSION:
+        return len(timestamps) - 1
+
+    latest_dt = datetime.fromtimestamp(timestamps[-1], tz=timezone.utc).astimezone(ET_TZ)
+    close_time = dt_time(16, 59, 59)
+    open_time = dt_time(9, 30, 0)
+
+    session_date = latest_dt.date()
+    if latest_dt.weekday() >= 5 or latest_dt.time() < close_time:
+        session_date -= timedelta(days=1)
+    while session_date.weekday() >= 5:
+        session_date -= timedelta(days=1)
+
+    idx = -1
+    for i, ts in enumerate(timestamps):
+        et_dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ)
+        if et_dt.date() == session_date and open_time <= et_dt.time() <= close_time:
+            idx = i
+
+    if idx >= 0:
+        return idx
+
+    target_close = datetime.combine(session_date, close_time, tzinfo=ET_TZ).astimezone(timezone.utc).timestamp()
+    for i, ts in enumerate(timestamps):
+        if ts <= target_close:
+            idx = i
+    return idx if idx >= 0 else len(timestamps) - 1
 
 
 def _utc_iso_to_et_label(value: Any) -> str:
@@ -286,12 +358,20 @@ def _write_trade_history(rows: list[dict[str, Any]]) -> None:
         "entry_et",
         "entry_time_et",
         "entry_price",
+        "entry_session_id",
         "exit_unix",
         "exit_et",
         "exit_time_et",
         "exit_price",
+        "exit_session_id",
         "direction",
         "bars_held",
+        "minutes_held",
+        "stop_price_at_entry",
+        "max_adverse_excursion_usd",
+        "point_value_usd",
+        "loss_cap_usd",
+        "exit_reason",
         "pnl_pct",
         "trade_profit_pct",
         "pnl_usd",
@@ -360,6 +440,13 @@ def _upsert_trade_history(new_rows: list[dict[str, Any]]) -> list[dict[str, Any]
         else:
             item["exit_time_et"] = item.get("exit_time_et", item.get("exit_et"))
 
+        if entry_unix > 0 and exit_unix > 0:
+            entry_dt_et = datetime.fromtimestamp(entry_unix, tz=timezone.utc).astimezone(ET_TZ)
+            exit_dt_et = datetime.fromtimestamp(exit_unix, tz=timezone.utc).astimezone(ET_TZ)
+            if _trading_session_id(entry_dt_et) != _trading_session_id(exit_dt_et):
+                # Enforce same trading-session day trades only.
+                continue
+
         running_pct += pnl_pct
         running_usd += pnl_usd
         item["cumulative_pnl_pct"] = float(running_pct)
@@ -380,13 +467,21 @@ def _summarize_trade_history(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "win_rate_pct": 0.0,
             "avg_pnl_pct": 0.0,
             "total_pnl_pct": 0.0,
+            "avg_hold_minutes": 0.0,
+            "max_hold_minutes": 0.0,
+            "exit_reason_distribution": {},
             "first_entry_et": None,
             "last_exit_et": None,
         }
     pnl = [float(r.get("pnl_pct", 0.0) or 0.0) for r in rows]
     pnl_usd = [float(r.get("pnl_usd", (ACCOUNT_SIZE * float(r.get("pnl_pct", 0.0) or 0.0) / 100.0)) or 0.0) for r in rows]
+    hold_minutes = [float(r.get("minutes_held", 0.0) or 0.0) for r in rows]
     wins = sum(1 for x in pnl if x > 0)
     losses = sum(1 for x in pnl if x <= 0)
+    exit_reason_distribution: dict[str, int] = {}
+    for row in rows:
+        reason = str(row.get("exit_reason", "unknown"))
+        exit_reason_distribution[reason] = exit_reason_distribution.get(reason, 0) + 1
     return {
         "total_trades": int(len(rows)),
         "winning_trades": int(wins),
@@ -396,6 +491,9 @@ def _summarize_trade_history(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "total_pnl_pct": float(sum(pnl)),
         "avg_pnl_usd": float(sum(pnl_usd) / len(pnl_usd)),
         "total_pnl_usd": float(sum(pnl_usd)),
+        "avg_hold_minutes": float(sum(hold_minutes) / len(hold_minutes)) if hold_minutes else 0.0,
+        "max_hold_minutes": float(max(hold_minutes)) if hold_minutes else 0.0,
+        "exit_reason_distribution": exit_reason_distribution,
         "first_entry_et": rows[0].get("entry_et"),
         "last_exit_et": rows[-1].get("exit_et"),
     }
@@ -497,6 +595,75 @@ def _extract_sym_from_text(text: str) -> str:
     if match:
         return match.group(1)
     return "NQ"
+
+
+def _load_kx_records_from_fallback_snapshot(limit: int) -> dict[str, Any] | None:
+    fallback_path = BASE_DIR / "dashboard-fallback.json"
+    if not fallback_path.exists():
+        return None
+    try:
+        payload = json.loads(fallback_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+    stats = payload.get("distillation_stats", {})
+    if not isinstance(stats, dict):
+        return None
+
+    direction_mix_raw = stats.get("direction_mix", {})
+    if not isinstance(direction_mix_raw, dict):
+        return None
+
+    buy_n = max(0, int(direction_mix_raw.get("BUY", 0) or 0))
+    sell_n = max(0, int(direction_mix_raw.get("SELL", 0) or 0))
+    hold_n = max(0, int(direction_mix_raw.get("HOLD", 0) or 0))
+    total = buy_n + sell_n + hold_n
+    if total <= 0:
+        return None
+
+    counts = {"BUY": buy_n, "SELL": sell_n, "HOLD": hold_n}
+    directions: list[str] = []
+    target = min(limit, total)
+    # Interleave classes so simulated returns are not clustered by class.
+    while len(directions) < target:
+        progressed = False
+        for key in ("BUY", "HOLD", "SELL"):
+            if counts[key] > 0 and len(directions) < target:
+                directions.append(key)
+                counts[key] -= 1
+                progressed = True
+        if not progressed:
+            break
+
+    label_mix_raw = stats.get("label_mix", {})
+    if not isinstance(label_mix_raw, dict):
+        label_mix_raw = {}
+    label_mix = {
+        "positive": int(label_mix_raw.get("positive", buy_n) or 0),
+        "negative": int(label_mix_raw.get("negative", sell_n) or 0),
+        "neutral": int(label_mix_raw.get("neutral", hold_n) or 0),
+    }
+
+    top_symbols = stats.get("top_symbols", [])
+    if not isinstance(top_symbols, list):
+        top_symbols = []
+    samples = stats.get("samples", [])
+    if not isinstance(samples, list):
+        samples = []
+
+    return {
+        "n_records": len(directions),
+        "n_seed_records": int(stats.get("seed_records", 0) or 0),
+        "label_mix": label_mix,
+        "direction_mix": {
+            "BUY": sum(1 for d in directions if d == "BUY"),
+            "SELL": sum(1 for d in directions if d == "SELL"),
+            "HOLD": sum(1 for d in directions if d == "HOLD"),
+        },
+        "top_symbols": top_symbols[:6],
+        "directions": directions,
+        "samples": samples[:6],
+    }
 
 
 def _effective_cost_bps(
@@ -656,6 +823,11 @@ def _load_kx_direction_records(limit: int = 500) -> dict[str, Any]:
                 assistant_text = str(messages[1].get("content", ""))
                 _ = _parse_direction_from_text(assistant_text)
 
+    if not directions:
+        fallback = _load_kx_records_from_fallback_snapshot(limit=limit)
+        if fallback:
+            return fallback
+
     top_symbols = sorted(symbol_mix.items(), key=lambda x: x[1], reverse=True)[:6]
     return {
         "n_records": len(directions),
@@ -681,7 +853,7 @@ def _parse_hold_period_to_bars(hold_period: str) -> int:
     return BARS_PER_SESSION
 
 
-def _fetch_symbol_bars(symbol: str, interval: str = "5m", period: str = "5d") -> tuple[list[int], list[float]]:
+def _fetch_symbol_bars_ohlc(symbol: str, interval: str = "5m", period: str = "5d") -> dict[str, list[float] | list[int]]:
     sym = quote(symbol)
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval={interval}&range={period}"
     payload = _fetch_json(url)
@@ -691,11 +863,31 @@ def _fetch_symbol_bars(symbol: str, interval: str = "5m", period: str = "5d") ->
 
     timestamps = result.get("timestamp", [])
     indicators = result.get("indicators", {}).get("quote", [{}])[0]
+    opens = indicators.get("open", [])
+    highs = indicators.get("high", [])
+    lows = indicators.get("low", [])
     closes = indicators.get("close", [])
-    rows = [(int(ts), float(c)) for ts, c in zip(timestamps, closes) if c is not None]
+    volumes = indicators.get("volume", [])
+    rows: list[tuple[int, float, float, float, float, float]] = []
+    for ts, o, h, l, c, v in zip(timestamps, opens, highs, lows, closes, volumes):
+        if o is None or h is None or l is None or c is None:
+            continue
+        rows.append((int(ts), float(o), float(h), float(l), float(c), float(v or 0.0)))
     if len(rows) < 120:
         raise RuntimeError(f"Insufficient bars for {symbol}")
-    return [r[0] for r in rows], [r[1] for r in rows]
+    return {
+        "timestamp": [r[0] for r in rows],
+        "open": [r[1] for r in rows],
+        "high": [r[2] for r in rows],
+        "low": [r[3] for r in rows],
+        "close": [r[4] for r in rows],
+        "volume": [r[5] for r in rows],
+    }
+
+
+def _fetch_symbol_bars(symbol: str, interval: str = "5m", period: str = "5d") -> tuple[list[int], list[float]]:
+    bars = _fetch_symbol_bars_ohlc(symbol=symbol, interval=interval, period=period)
+    return list(bars["timestamp"]), list(bars["close"])
 
 
 def _fetch_multi_asset_prices(symbols: list[str]) -> pd.DataFrame:
@@ -1061,6 +1253,10 @@ def _fetch_nq_bars() -> tuple[list[int], list[float]]:
     return _fetch_symbol_bars("NQ=F", interval="5m", period=BACKTEST_RANGE_5M)
 
 
+def _fetch_nq_ohlc_bars() -> dict[str, list[float] | list[int]]:
+    return _fetch_symbol_bars_ohlc("NQ=F", interval="5m", period=BACKTEST_RANGE_5M)
+
+
 def _fetch_watchlist() -> list[dict[str, Any]]:
     symbols = ["NQ=F", "ES=F", "RTY=F", "^VIX"]
     params = urlencode({"symbols": ",".join(symbols), "range": "1d", "interval": "5m"})
@@ -1113,11 +1309,15 @@ def _fetch_watchlist() -> list[dict[str, Any]]:
     ]
 
 
-def _generate_live_signals(returns: list[float], kx_confluence: dict[str, Any] | None = None) -> list[int]:
+def _generate_live_signals_with_config(
+    returns: list[float],
+    cfg: dict[str, Any],
+    kx_confluence: dict[str, Any] | None = None,
+    macro_bias_override: int | None = None,
+) -> list[int]:
     if not returns:
         return []
 
-    cfg = LIVE_SIGNAL_CONFIG
     momentum = _rolling_mean(returns, int(cfg["momentum_window"]))
     volatility = _rolling_stdev(returns, int(cfg["volatility_window"]))
     trend = _rolling_mean(returns, int(cfg["trend_window"]))
@@ -1146,11 +1346,14 @@ def _generate_live_signals(returns: list[float], kx_confluence: dict[str, Any] |
             long_relax = 1.0 - (1.0 - raw_long_relax) * _clamp(kx_strength, 0.0, 1.5)
             short_boost = 1.0 + (raw_short_boost - 1.0) * _clamp(kx_strength, 0.0, 1.5)
 
-    macro_bias = 0
-    try:
-        macro_bias = int(_pdf_daily_trend_context()["bias"])
-    except Exception:
+    if macro_bias_override is not None:
+        macro_bias = int(macro_bias_override)
+    else:
         macro_bias = 0
+        try:
+            macro_bias = int(_pdf_daily_trend_context()["bias"])
+        except Exception:
+            macro_bias = 0
 
     signals: list[int] = []
     position = 0
@@ -1197,35 +1400,52 @@ def _generate_live_signals(returns: list[float], kx_confluence: dict[str, Any] |
     return signals
 
 
-def _apply_execution_controls(exec_signal: list[int], returns: list[float], timestamps: list[int]) -> list[int]:
+def _generate_live_signals(returns: list[float], kx_confluence: dict[str, Any] | None = None) -> list[int]:
+    return _generate_live_signals_with_config(
+        returns=returns,
+        cfg=LIVE_SIGNAL_CONFIG,
+        kx_confluence=kx_confluence,
+    )
+
+
+def _apply_execution_controls_with_config(
+    exec_signal: list[int],
+    returns: list[float],
+    timestamps: list[int],
+    cfg: dict[str, Any],
+) -> list[int]:
     if not exec_signal:
         return []
-    cfg = LIVE_SIGNAL_CONFIG
+
     use_daily_guard = bool(cfg.get("use_daily_loss_guard", True))
     daily_limit_pct = float(cfg.get("daily_loss_limit_pct", 0.75))
     max_trades_day = int(cfg.get("max_trades_per_day", PROP_EXECUTION_CONFIG["max_trades_per_day"]))
     cooldown_bars = int(cfg.get("trade_cooldown_bars", 0))
+    enforce_same_day = bool(cfg.get("enforce_same_day_trades", True))
     switch_cost = 2.5 / 10000.0
 
     out: list[int] = []
     prev = 0
     timer = 0
-    active_day = None
+    active_day = ""
     day_pnl = 0.0
     day_locked = False
     trades_today = 0
 
     for i, desired in enumerate(exec_signal):
         ts = timestamps[i + 1]
-        bar_day = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ).date()
-        if bar_day != active_day:
-            active_day = bar_day
+        bar_dt_et = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ)
+        session_id = _trading_session_id(bar_dt_et)
+        if session_id != active_day:
+            active_day = session_id
             day_pnl = 0.0
             day_locked = False
             trades_today = 0
             timer = 0
 
         desired_sig = int(desired)
+        if enforce_same_day and not _is_within_trading_session_window(bar_dt_et):
+            desired_sig = 0
         if use_daily_guard and day_locked:
             desired_sig = 0
 
@@ -1253,84 +1473,258 @@ def _apply_execution_controls(exec_signal: list[int], returns: list[float], time
     return out
 
 
-def _derive_trade_history(
-    exec_signal: list[int],
-    returns: list[float],
+def _apply_execution_controls(exec_signal: list[int], returns: list[float], timestamps: list[int]) -> list[int]:
+    return _apply_execution_controls_with_config(
+        exec_signal=exec_signal,
+        returns=returns,
+        timestamps=timestamps,
+        cfg=LIVE_SIGNAL_CONFIG,
+    )
+
+
+def _finalize_trade(
+    trade: dict[str, Any],
+    *,
+    exit_unix: int,
+    exit_price: float,
+    exit_reason: str,
+    loss_cap_usd: float,
+) -> dict[str, Any]:
+    direction = int(trade["direction_sign"])
+    entry_price = float(trade["entry_price"])
+    point_value_usd = float(trade["point_value_usd"])
+    pnl_points = (float(exit_price) - entry_price) * direction
+    pnl_usd = pnl_points * point_value_usd
+    pnl_pct = (pnl_usd / ACCOUNT_SIZE) * 100.0 if ACCOUNT_SIZE > 0 else 0.0
+    entry_unix = int(trade["entry_unix"])
+    minutes_held = max(0.0, (float(exit_unix) - float(entry_unix)) / 60.0)
+    entry_dt = datetime.fromtimestamp(entry_unix, tz=timezone.utc).astimezone(ET_TZ)
+    exit_dt = datetime.fromtimestamp(exit_unix, tz=timezone.utc).astimezone(ET_TZ)
+    max_adverse_usd = float(trade.get("max_adverse_excursion_usd", 0.0))
+
+    return {
+        "trade_id": f"{entry_unix}|{'LONG' if direction > 0 else 'SHORT'}",
+        "entry_unix": entry_unix,
+        "entry_et": _format_et_trade(entry_unix),
+        "entry_time_et": _format_et_trade(entry_unix),
+        "entry_price": round(entry_price, 2),
+        "exit_unix": int(exit_unix),
+        "exit_et": _format_et_trade(exit_unix),
+        "exit_time_et": _format_et_trade(exit_unix),
+        "exit_price": round(float(exit_price), 2),
+        "direction": "LONG" if direction > 0 else "SHORT",
+        "entry_session_id": _trading_session_id(entry_dt),
+        "exit_session_id": _trading_session_id(exit_dt),
+        "bars_held": int(max(1, int(trade.get("bars_held", 1)))),
+        "minutes_held": float(minutes_held),
+        "stop_price_at_entry": round(float(trade["stop_price_at_entry"]), 2),
+        "max_adverse_excursion_usd": float(max_adverse_usd),
+        "point_value_usd": float(point_value_usd),
+        "loss_cap_usd": float(loss_cap_usd),
+        "exit_reason": str(exit_reason),
+        "pnl_pct": float(pnl_pct),
+        "trade_profit_pct": float(pnl_pct),
+        "pnl_usd": float(pnl_usd),
+        "trade_profit_usd": float(pnl_usd),
+        "result": "WIN" if pnl_pct > 0 else "LOSS",
+        "updated_at_utc": datetime.now(tz=timezone.utc).isoformat(),
+    }
+
+
+def _simulate_exec_with_constraints(
+    desired_exec_signal: list[int],
+    *,
     timestamps: list[int],
-    close: list[float],
-) -> list[dict[str, Any]]:
-    if not exec_signal:
-        return []
-    out: list[dict[str, Any]] = []
+    open_px: list[float],
+    high_px: list[float],
+    low_px: list[float],
+    close_px: list[float],
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    n = min(len(desired_exec_signal), max(0, len(close_px) - 1))
+    if n <= 0:
+        return {
+            "exec_signal": [],
+            "strat_returns": [],
+            "trades": [],
+            "constraint_checks": {
+                "max_hold_violation_count": 0,
+                "loss_cap_violation_count": 0,
+                "cross_session_violation_count": 0,
+                "exit_reason_distribution": {},
+            },
+        }
+
     switch_cost = 2.5 / 10000.0
-    prev = 0
-    trade: dict[str, Any] | None = None
-    trade_curve: float | None = None
-    bars_held = 0
+    max_hold_minutes = max(1, int(cfg.get("max_hold_minutes", 90)))
+    max_hold_seconds = max_hold_minutes * 60
+    loss_cap_usd = abs(float(cfg.get("max_active_trade_loss_usd", 500.0)))
+    intrabar_stop_touch = bool(cfg.get("intrabar_stop_touch", True))
+    enforce_same_day = bool(cfg.get("enforce_same_day_trades", True))
+    point_value_usd = float(NQ_POINT_VALUE_USD)
+    stop_distance_points = (loss_cap_usd / point_value_usd) if point_value_usd > 1e-9 else 0.0
 
-    for i, sig in enumerate(exec_signal):
-        s = int(sig)
-        switched = s != prev
-        bar_ts = int(timestamps[i + 1])
-        prev_bar_ts = int(timestamps[i])
-        px = float(close[i]) if i < len(close) else float(close[-1])
+    exec_signal: list[int] = []
+    strat_returns: list[float] = []
+    trades: list[dict[str, Any]] = []
+    current_pos = 0
+    open_trade: dict[str, Any] | None = None
 
+    for i in range(n):
+        bar_idx = i + 1
+        bar_start_ts = int(timestamps[i])
+        bar_end_ts = int(timestamps[bar_idx])
+        bar_end_dt_et = datetime.fromtimestamp(bar_end_ts, tz=timezone.utc).astimezone(ET_TZ)
+        desired = int(desired_exec_signal[i])
+
+        if enforce_same_day and not _is_within_trading_session_window(bar_end_dt_et):
+            desired = 0
+
+        start_pos = current_pos
+        bar_open = float(open_px[bar_idx])
+        bar_high = float(high_px[bar_idx])
+        bar_low = float(low_px[bar_idx])
+        bar_close = float(close_px[bar_idx])
+
+        if desired != current_pos:
+            if current_pos != 0 and open_trade is not None:
+                reason = "signal_flip" if desired != 0 else "signal_flat"
+                trades.append(
+                    _finalize_trade(
+                        open_trade,
+                        exit_unix=bar_start_ts,
+                        exit_price=bar_open,
+                        exit_reason=reason,
+                        loss_cap_usd=loss_cap_usd,
+                    )
+                )
+                open_trade = None
+                current_pos = 0
+
+            if desired != 0:
+                entry_dt_et = datetime.fromtimestamp(bar_start_ts, tz=timezone.utc).astimezone(ET_TZ)
+                can_open = True
+                if enforce_same_day and not _is_within_trading_session_window(entry_dt_et):
+                    can_open = False
+                if can_open:
+                    stop_price = bar_open - stop_distance_points if desired > 0 else bar_open + stop_distance_points
+                    open_trade = {
+                        "entry_unix": int(bar_start_ts),
+                        "entry_price": float(bar_open),
+                        "direction_sign": int(desired),
+                        "point_value_usd": float(point_value_usd),
+                        "stop_price_at_entry": float(stop_price),
+                        "max_adverse_excursion_usd": 0.0,
+                        "bars_held": 0,
+                    }
+                    current_pos = int(desired)
+
+        bar_return = 0.0
+        if current_pos != 0 and open_trade is not None:
+            entry_price = float(open_trade["entry_price"])
+            direction = int(open_trade["direction_sign"])
+            stop_price = float(open_trade["stop_price_at_entry"])
+
+            if direction > 0:
+                adverse_points = bar_low - entry_price
+            else:
+                adverse_points = entry_price - bar_high
+            adverse_usd = adverse_points * point_value_usd
+            open_trade["max_adverse_excursion_usd"] = min(
+                float(open_trade.get("max_adverse_excursion_usd", 0.0)),
+                float(adverse_usd),
+            )
+            open_trade["bars_held"] = int(open_trade.get("bars_held", 0)) + 1
+
+            stop_hit = False
+            if intrabar_stop_touch:
+                if direction > 0 and bar_low <= stop_price:
+                    stop_hit = True
+                if direction < 0 and bar_high >= stop_price:
+                    stop_hit = True
+
+            elapsed_seconds = int(bar_end_ts - int(open_trade["entry_unix"]))
+            exit_reason: str | None = None
+            exit_price = float(bar_close)
+
+            if stop_hit:
+                exit_reason = "loss_cap"
+                exit_price = float(stop_price)
+            elif elapsed_seconds >= max_hold_seconds:
+                exit_reason = "time_cap"
+            elif enforce_same_day:
+                entry_dt_et = datetime.fromtimestamp(int(open_trade["entry_unix"]), tz=timezone.utc).astimezone(ET_TZ)
+                if (
+                    not _is_within_trading_session_window(bar_end_dt_et)
+                    or _trading_session_id(entry_dt_et) != _trading_session_id(bar_end_dt_et)
+                ):
+                    exit_reason = "session_flatten"
+
+            if direction > 0:
+                bar_return = (exit_price - float(close_px[i])) / float(close_px[i])
+            else:
+                bar_return = (float(close_px[i]) - exit_price) / float(close_px[i])
+
+            if exit_reason is not None:
+                trades.append(
+                    _finalize_trade(
+                        open_trade,
+                        exit_unix=bar_end_ts,
+                        exit_price=exit_price,
+                        exit_reason=exit_reason,
+                        loss_cap_usd=loss_cap_usd,
+                    )
+                )
+                open_trade = None
+                current_pos = 0
+
+        switched = current_pos != start_pos
         if switched:
-            if prev != 0 and trade is not None and trade_curve is not None:
-                pnl_pct = (trade_curve - 1.0) * 100.0
-                pnl_usd = ACCOUNT_SIZE * (pnl_pct / 100.0)
-                trade["exit_unix"] = bar_ts
-                trade["exit_et"] = _format_et_trade(bar_ts)
-                trade["exit_time_et"] = trade["exit_et"]
-                trade["exit_price"] = round(px, 2)
-                trade["bars_held"] = int(max(1, bars_held))
-                trade["pnl_pct"] = float(pnl_pct)
-                trade["trade_profit_pct"] = float(pnl_pct)
-                trade["pnl_usd"] = float(pnl_usd)
-                trade["trade_profit_usd"] = float(pnl_usd)
-                trade["result"] = "WIN" if pnl_pct > 0 else "LOSS"
-                trade["updated_at_utc"] = datetime.now(tz=timezone.utc).isoformat()
-                out.append(trade)
-                trade = None
-                trade_curve = None
-                bars_held = 0
-            if s != 0:
-                trade = {
-                    "trade_id": f"{prev_bar_ts}|{'LONG' if s > 0 else 'SHORT'}",
-                    "entry_unix": prev_bar_ts,
-                    "entry_et": _format_et_trade(prev_bar_ts),
-                    "entry_time_et": _format_et_trade(prev_bar_ts),
-                    "entry_price": round(px, 2),
-                    "direction": "LONG" if s > 0 else "SHORT",
-                }
-                trade_curve = 1.0
-                bars_held = 0
+            bar_return -= switch_cost
+        strat_returns.append(float(bar_return))
+        exec_signal.append(int(current_pos))
 
-        if s != 0 and trade is not None:
-            bar_ret = s * float(returns[i]) - (switch_cost if switched else 0.0)
-            trade_curve = (trade_curve or 1.0) * (1.0 + bar_ret)
-            bars_held += 1
-        prev = s
+    if current_pos != 0 and open_trade is not None:
+        final_ts = int(timestamps[n])
+        final_close = float(close_px[n])
+        trades.append(
+            _finalize_trade(
+                open_trade,
+                exit_unix=final_ts,
+                exit_price=final_close,
+                exit_reason="end_of_data",
+                loss_cap_usd=loss_cap_usd,
+            )
+        )
+        exec_signal[-1] = 0
 
-    if prev != 0 and trade is not None and trade_curve is not None:
-        end_ts = int(timestamps[-1])
-        end_px = float(close[-1])
-        pnl_pct = (trade_curve - 1.0) * 100.0
-        pnl_usd = ACCOUNT_SIZE * (pnl_pct / 100.0)
-        trade["exit_unix"] = end_ts
-        trade["exit_et"] = _format_et_trade(end_ts)
-        trade["exit_time_et"] = trade["exit_et"]
-        trade["exit_price"] = round(end_px, 2)
-        trade["bars_held"] = int(max(1, bars_held))
-        trade["pnl_pct"] = float(pnl_pct)
-        trade["trade_profit_pct"] = float(pnl_pct)
-        trade["pnl_usd"] = float(pnl_usd)
-        trade["trade_profit_usd"] = float(pnl_usd)
-        trade["result"] = "WIN" if pnl_pct > 0 else "LOSS"
-        trade["updated_at_utc"] = datetime.now(tz=timezone.utc).isoformat()
-        out.append(trade)
+    exit_reason_distribution: dict[str, int] = {}
+    max_hold_violations = 0
+    loss_cap_violations = 0
+    cross_session_violations = 0
+    for t in trades:
+        reason = str(t.get("exit_reason", "unknown"))
+        exit_reason_distribution[reason] = exit_reason_distribution.get(reason, 0) + 1
+        if float(t.get("minutes_held", 0.0)) > float(max_hold_minutes) + 1e-9:
+            max_hold_violations += 1
+        if float(t.get("pnl_usd", 0.0)) < -loss_cap_usd - 1e-6:
+            loss_cap_violations += 1
+        if str(t.get("entry_session_id")) != str(t.get("exit_session_id")):
+            cross_session_violations += 1
 
-    return out
+    return {
+        "exec_signal": exec_signal,
+        "strat_returns": strat_returns,
+        "trades": trades,
+        "constraint_checks": {
+            "max_hold_violation_count": int(max_hold_violations),
+            "loss_cap_violation_count": int(loss_cap_violations),
+            "cross_session_violation_count": int(cross_session_violations),
+            "exit_reason_distribution": exit_reason_distribution,
+            "max_hold_minutes": int(max_hold_minutes),
+            "max_active_trade_loss_usd": float(loss_cap_usd),
+        },
+    }
 
 
 def _pdf_daily_trend_context() -> dict[str, Any]:
@@ -1376,7 +1770,22 @@ def _pdf_daily_trend_context() -> dict[str, Any]:
 
 
 def _build_payload() -> dict[str, Any]:
-    timestamps, close = _fetch_nq_bars()
+    bars_all = _fetch_nq_ohlc_bars()
+    timestamps_all = list(bars_all["timestamp"])
+    open_all = list(bars_all["open"])
+    high_all = list(bars_all["high"])
+    low_all = list(bars_all["low"])
+    close_all = list(bars_all["close"])
+    eval_end_idx = _resolve_evaluation_end_index(timestamps_all)
+    if eval_end_idx < 2:
+        eval_end_idx = len(timestamps_all) - 1
+
+    timestamps = timestamps_all[: eval_end_idx + 1]
+    open_px = open_all[: eval_end_idx + 1]
+    high_px = high_all[: eval_end_idx + 1]
+    low_px = low_all[: eval_end_idx + 1]
+    close = close_all[: eval_end_idx + 1]
+    live_latest_ts = timestamps_all[-1]
 
     returns = [(close[i] - close[i - 1]) / close[i - 1] for i in range(1, len(close))]
     try:
@@ -1388,21 +1797,22 @@ def _build_payload() -> dict[str, Any]:
     kx_confluence = _derive_kx_confluence(kx_overlay)
 
     raw_signal = _generate_live_signals(returns, kx_confluence=kx_confluence)
-    exec_signal = _apply_execution_controls([0] + raw_signal[:-1], returns, timestamps)
-
-    switch_cost = 2.5 / 10000.0
-    strat_returns: list[float] = []
-    n_trades = 0
-    prev = 0
-    for sig, ret in zip(exec_signal, returns):
-        switched = sig != prev
-        if switched:
-            n_trades += 1
-        cost = switch_cost if switched else 0.0
-        strat_returns.append(sig * ret - cost)
-        prev = sig
-
-    trade_returns = [r for s, r in zip(exec_signal, strat_returns) if s != 0]
+    desired_exec_signal = _apply_execution_controls([0] + raw_signal[:-1], returns, timestamps)
+    sim = _simulate_exec_with_constraints(
+        desired_exec_signal,
+        timestamps=timestamps,
+        open_px=open_px,
+        high_px=high_px,
+        low_px=low_px,
+        close_px=close,
+        cfg=LIVE_SIGNAL_CONFIG,
+    )
+    exec_signal = list(sim["exec_signal"])
+    strat_returns = list(sim["strat_returns"])
+    sim_trade_rows = list(sim["trades"])
+    constraint_checks = dict(sim["constraint_checks"])
+    n_trades = int(len(sim_trade_rows))
+    trade_pnls = [float(t.get("pnl_usd", 0.0) or 0.0) for t in sim_trade_rows]
 
     mean_ret = _mean(strat_returns)
     std_ret = _stdev(strat_returns)
@@ -1411,9 +1821,7 @@ def _build_payload() -> dict[str, Any]:
 
     total_return_pct = (_cum_equity(strat_returns)[-1] - 1.0) * 100
     max_drawdown_pct = _max_drawdown(strat_returns) * 100
-    win_rate_pct = (
-        (sum(1 for x in trade_returns if x > 0) / len(trade_returns)) * 100 if trade_returns else 0.0
-    )
+    win_rate_pct = ((sum(1 for x in trade_pnls if x > 0) / len(trade_pnls)) * 100.0) if trade_pnls else 0.0
 
     recent_trend = _mean(returns[-12:])
     recent_vol = _stdev(returns[-24:])
@@ -1568,6 +1976,12 @@ def _build_payload() -> dict[str, Any]:
     if next_signal != 0 and mnq_contracts == 0 and risk_sized_mnq > 0:
         mnq_contracts = 1
 
+    next_bar_dt_et = datetime.fromtimestamp(next_bar_ts, tz=timezone.utc).astimezone(ET_TZ)
+    within_same_day_window = _is_within_trading_session_window(next_bar_dt_et)
+    if not within_same_day_window:
+        nq_contracts = 0
+        mnq_contracts = 0
+
     entry_ref = close[-1]
     stop_price = None
     target_price = None
@@ -1578,13 +1992,15 @@ def _build_payload() -> dict[str, Any]:
         stop_price = _round_to_tick(entry_ref + stop_points)
         target_price = _round_to_tick(entry_ref - target_points)
 
-    latest_day = datetime.fromtimestamp(latest_ts, tz=timezone.utc).astimezone(ET_TZ).date()
+    latest_session_id = _trading_session_id(
+        datetime.fromtimestamp(latest_ts, tz=timezone.utc).astimezone(ET_TZ)
+    )
     trades_today = 0
     today_return = 0.0
     for i, sig in enumerate(exec_signal):
         ts = timestamps[i + 1]
-        bar_day = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ).date()
-        if bar_day != latest_day:
+        bar_session_id = _trading_session_id(datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ))
+        if bar_session_id != latest_session_id:
             continue
         prev_sig = exec_signal[i - 1] if i > 0 else 0
         if sig != prev_sig:
@@ -1597,7 +2013,7 @@ def _build_payload() -> dict[str, Any]:
     within_daily_limit = daily_model_pnl_usd > -daily_loss_limit_usd
     has_direction = next_signal != 0
     has_size = nq_contracts > 0 or mnq_contracts > 0
-    eligible = bool(under_trade_cap and within_daily_limit and has_direction and has_size)
+    eligible = bool(under_trade_cap and within_daily_limit and has_direction and has_size and within_same_day_window)
 
     checks = [
         {
@@ -1609,6 +2025,15 @@ def _build_payload() -> dict[str, Any]:
             "name": "Size Is Tradable",
             "pass": has_size,
             "detail": f"Suggested size NQ {nq_contracts} / MNQ {mnq_contracts}.",
+        },
+        {
+            "name": "Same-Day Session Window",
+            "pass": within_same_day_window,
+            "detail": (
+                f"Next bar {next_bar_dt_et.strftime('%Y-%m-%d %H:%M:%S ET')} must be within the NQ session "
+                f"window ({TRADING_SESSION_OPEN_ET.strftime('%H:%M')} -> "
+                f"{TRADING_SESSION_FLAT_TIME_ET.strftime('%H:%M')} ET pre-close flatten)."
+            ),
         },
         {
             "name": "Daily Trade Cap",
@@ -1637,6 +2062,14 @@ def _build_payload() -> dict[str, Any]:
         datetime.fromtimestamp(latest_ts, tz=timezone.utc).astimezone(ET_TZ).strftime("%Y-%m-%d %H:%M:%S ET")
     )
     approx_sessions = len(returns) / BARS_PER_SESSION if BARS_PER_SESSION > 0 else 0.0
+    trading_session_days = len(
+        {
+            _trading_session_id(datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ))
+            for ts in timestamps
+        }
+    )
+    trades_per_trading_session = (n_trades / trading_session_days) if trading_session_days > 0 else 0.0
+    trades_per_equiv_session = (n_trades / approx_sessions) if approx_sessions > 1e-9 else 0.0
 
     execution_plan = {
         "eligible": eligible,
@@ -1670,12 +2103,29 @@ def _build_payload() -> dict[str, Any]:
             "end_et": backtest_window_end,
             "range_5m": BACKTEST_RANGE_5M,
             "bars": len(returns),
+            "trading_session_days": int(trading_session_days),
+            "sessions_equiv_78bar": round(approx_sessions, 2),
             "sessions_equiv": round(approx_sessions, 2),
             "trades": int(n_trades),
-            "trades_per_session": round((n_trades / approx_sessions) if approx_sessions > 1e-9 else 0.0, 2),
+            "trades_per_session": round(trades_per_trading_session, 2),
+            "trades_per_session_equiv_78bar": round(trades_per_equiv_session, 2),
             "avg_return_per_trade_pct": round((total_return_pct / n_trades) if n_trades > 0 else 0.0, 4),
         },
-        "notes": "Signal is generated on 5m bar close; execute on next 5m bar open to mirror model timing.",
+        "constraint_checks": {
+            "max_hold_minutes": int(constraint_checks.get("max_hold_minutes", LIVE_SIGNAL_CONFIG.get("max_hold_minutes", 90))),
+            "max_active_trade_loss_usd": float(
+                constraint_checks.get("max_active_trade_loss_usd", LIVE_SIGNAL_CONFIG.get("max_active_trade_loss_usd", 500.0))
+            ),
+            "max_hold_violation_count": int(constraint_checks.get("max_hold_violation_count", 0)),
+            "loss_cap_violation_count": int(constraint_checks.get("loss_cap_violation_count", 0)),
+            "cross_session_violation_count": int(constraint_checks.get("cross_session_violation_count", 0)),
+            "exit_reason_distribution": dict(constraint_checks.get("exit_reason_distribution", {})),
+        },
+        "notes": (
+            "Signal is generated on 5m bar close; execute on next 5m bar open to mirror model timing. "
+            "Intrabar stop-touch exits enforce the $500 active-loss cap, max hold is 90 minutes, "
+            "and overnight holds are blocked (same-session-day trades only)."
+        ),
     }
 
     trade_entry_candidate = bool(eligible and signal_changed and has_direction and has_size)
@@ -1709,9 +2159,7 @@ def _build_payload() -> dict[str, Any]:
         trade_journal_rows = _load_trade_journal_rows()
 
     trade_journal_summary = _summarize_trade_journal(trade_journal_rows)
-    trade_history_rows = _upsert_trade_history(
-        _derive_trade_history(exec_signal=exec_signal, returns=returns, timestamps=timestamps, close=close)
-    )
+    trade_history_rows = _upsert_trade_history(sim_trade_rows)
     trade_history_summary = _summarize_trade_history(trade_history_rows)
 
     try:
@@ -1824,6 +2272,12 @@ def _build_payload() -> dict[str, Any]:
         "meta": {
             "symbol": "NQ=F",
             "as_of_et": _format_et(latest_ts),
+            "live_last_bar_et": _format_et(live_latest_ts),
+            "evaluation_mode": "last_closed_session" if FREEZE_TO_LAST_CLOSED_SESSION else "live",
+            "range_5m": BACKTEST_RANGE_5M,
+            "n_bars": int(len(returns)),
+            "window_start_et": backtest_window_start,
+            "window_end_et": backtest_window_end,
             "last_price": round(close[-1], 2),
         },
         "headline": headline,
@@ -1842,6 +2296,12 @@ def _build_payload() -> dict[str, Any]:
             "total_return_pct": float(total_return_pct),
             "win_rate_pct": float(win_rate_pct),
             "n_trades": int(n_trades),
+            "trades_per_day": float(trades_per_trading_session),
+            "avg_hold_minutes": float(trade_history_summary.get("avg_hold_minutes", 0.0)),
+            "max_hold_minutes_observed": float(trade_history_summary.get("max_hold_minutes", 0.0)),
+            "max_hold_violation_count": int(constraint_checks.get("max_hold_violation_count", 0)),
+            "loss_cap_violation_count": int(constraint_checks.get("loss_cap_violation_count", 0)),
+            "cross_session_violation_count": int(constraint_checks.get("cross_session_violation_count", 0)),
             "winning_trades_lifetime": int(trade_history_summary["winning_trades"]),
             "losing_trades_lifetime": int(trade_history_summary["losing_trades"]),
             "total_pnl_lifetime_pct": float(trade_history_summary["total_pnl_pct"]),
@@ -1869,6 +2329,16 @@ def _build_payload() -> dict[str, Any]:
             "all": trade_history_rows,
             "recent": trade_history_rows,
         },
+        "constraints": {
+            "max_hold_minutes": int(constraint_checks.get("max_hold_minutes", LIVE_SIGNAL_CONFIG.get("max_hold_minutes", 90))),
+            "max_active_trade_loss_usd": float(
+                constraint_checks.get("max_active_trade_loss_usd", LIVE_SIGNAL_CONFIG.get("max_active_trade_loss_usd", 500.0))
+            ),
+            "max_hold_violation_count": int(constraint_checks.get("max_hold_violation_count", 0)),
+            "loss_cap_violation_count": int(constraint_checks.get("loss_cap_violation_count", 0)),
+            "cross_session_violation_count": int(constraint_checks.get("cross_session_violation_count", 0)),
+            "exit_reason_distribution": dict(constraint_checks.get("exit_reason_distribution", {})),
+        },
         "signal_mix": signal_mix,
         "signal_mix_lookback_bars": int(SIGNAL_MIX_LOOKBACK_BARS),
         "config": {"cvar_alpha": alpha, "risk_aversion": risk_aversion},
@@ -1883,7 +2353,7 @@ def _build_payload() -> dict[str, Any]:
             {
                 "name": "KX Distillation",
                 "status": kx_status,
-                "path": str(KX_DIR),
+                "path": str(KX_FINGPT_FILE.parent),
                 "detail": "FinGPT labels + backtest_config + BUY/SELL/HOLD mapping",
             },
         ],
