@@ -55,13 +55,15 @@ try:
 except ValueError:
     SIGNAL_MIX_LOOKBACK_BARS = 120
 try:
-    TRADE_JOURNAL_MAX_ROWS = max(200, int(os.environ.get("TRADE_JOURNAL_MAX_ROWS", "5000")))
+    # 0 means unlimited retention.
+    TRADE_JOURNAL_MAX_ROWS = max(0, int(os.environ.get("TRADE_JOURNAL_MAX_ROWS", "0")))
 except ValueError:
-    TRADE_JOURNAL_MAX_ROWS = 5000
+    TRADE_JOURNAL_MAX_ROWS = 0
 try:
-    TRADE_HISTORY_MAX_ROWS = max(1000, int(os.environ.get("TRADE_HISTORY_MAX_ROWS", "300000")))
+    # 0 means unlimited retention.
+    TRADE_HISTORY_MAX_ROWS = max(0, int(os.environ.get("TRADE_HISTORY_MAX_ROWS", "0")))
 except ValueError:
-    TRADE_HISTORY_MAX_ROWS = 300000
+    TRADE_HISTORY_MAX_ROWS = 0
 
 # Tuned on recent 5m NQ bars to reduce churn and improve risk-adjusted behavior.
 LIVE_SIGNAL_CONFIG = {
@@ -152,7 +154,7 @@ def _load_trade_journal_rows() -> list[dict[str, Any]]:
 
 def _write_trade_journal(rows: list[dict[str, Any]]) -> None:
     TRADE_LOG_DIR.mkdir(parents=True, exist_ok=True)
-    trimmed = rows[-TRADE_JOURNAL_MAX_ROWS:]
+    trimmed = rows[-TRADE_JOURNAL_MAX_ROWS:] if TRADE_JOURNAL_MAX_ROWS > 0 else rows
 
     with TRADE_JOURNAL_JSONL.open("w", encoding="utf-8") as fh:
         for row in trimmed:
@@ -196,7 +198,7 @@ def _append_trade_journal(entry: dict[str, Any]) -> tuple[bool, list[dict[str, A
 
     rows.append(entry)
     _write_trade_journal(rows)
-    return True, rows[-TRADE_JOURNAL_MAX_ROWS:]
+    return True, rows
 
 
 def _summarize_trade_journal(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -246,7 +248,7 @@ def _load_trade_history_rows() -> list[dict[str, Any]]:
 
 def _write_trade_history(rows: list[dict[str, Any]]) -> None:
     TRADE_LOG_DIR.mkdir(parents=True, exist_ok=True)
-    trimmed = rows[-TRADE_HISTORY_MAX_ROWS:]
+    trimmed = rows[-TRADE_HISTORY_MAX_ROWS:] if TRADE_HISTORY_MAX_ROWS > 0 else rows
     with TRADE_HISTORY_JSONL.open("w", encoding="utf-8") as fh:
         for row in trimmed:
             fh.write(json.dumps(row) + "\n")
@@ -1804,13 +1806,15 @@ def _build_payload() -> dict[str, Any]:
             "path": str(TRADE_JOURNAL_JSONL),
             "csv_path": str(TRADE_JOURNAL_CSV),
             "summary": trade_journal_summary,
-            "recent": trade_journal_rows[-120:],
+            "all": trade_journal_rows,
+            "recent": trade_journal_rows,
         },
         "trade_history": {
             "path": str(TRADE_HISTORY_JSONL),
             "csv_path": str(TRADE_HISTORY_CSV),
             "summary": trade_history_summary,
-            "recent": trade_history_rows[-200:],
+            "all": trade_history_rows,
+            "recent": trade_history_rows,
         },
         "signal_mix": signal_mix,
         "signal_mix_lookback_bars": int(SIGNAL_MIX_LOOKBACK_BARS),

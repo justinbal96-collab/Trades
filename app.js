@@ -26225,7 +26225,9 @@ function SignalsPage({ data }) {
   const dirMix = distill.direction_mix || {};
   const journal = data.trade_journal || {};
   const journalSummary = journal.summary || {};
-  const journalRecent = (journal.recent || []).slice(-20).reverse();
+  const history = data.trade_history || {};
+  const historySummary = history.summary || {};
+  const historyRows = (history.all || history.recent || []).slice().reverse();
   return html`
     <main className="main-grid">
       <section className="panel wide">
@@ -26244,6 +26246,7 @@ function SignalsPage({ data }) {
           <li><span>Expected return</span><b>${latest.expected_session_return_pct.toFixed(2)}%</b></li>
           <li><span>Win rate</span><b>${latest.win_rate_pct.toFixed(1)}%</b></li>
           <li><span>Trades (5d)</span><b>${latest.n_trades}</b></li>
+          <li><span>Total stored trades</span><b>${historySummary.total_trades || historyRows.length || 0}</b></li>
         </ul>
       </section>
 
@@ -26316,7 +26319,7 @@ function SignalsPage({ data }) {
       <section className="panel wide">
         <div className="section-head">
           <h3>Persistent Trade Journal</h3>
-          <span>auto-logged on directional, eligible signal changes</span>
+          <span>stores all future directional signal events (no 20-row cap)</span>
         </div>
         <ul className="table-list">
           <li><span>Total logged trades</span><b>${journalSummary.total_logged || 0}</b></li>
@@ -26325,40 +26328,45 @@ function SignalsPage({ data }) {
           <li><span>First logged</span><b>${journalSummary.first_logged_at_et || "--"}</b></li>
           <li><span>Last logged</span><b>${journalSummary.last_logged_at_et || "--"}</b></li>
           <li><span>Storage path</span><b>${journal.path || "--"}</b></li>
+          <li><span>Backtest + live history path</span><b>${history.path || "--"}</b></li>
         </ul>
       </section>
 
       <section className="panel wide">
         <div className="section-head">
-          <h3>Recent Logged Trades</h3>
-          <span>latest 20 journal entries</span>
+          <h3>All Stored Trades (Backtest + Live)</h3>
+          <span>full retained history (most recent first)</span>
         </div>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Execute (ET)</th>
-                <th>Action</th>
+                <th>Entry (ET)</th>
+                <th>Exit (ET)</th>
+                <th>Direction</th>
                 <th>Entry</th>
-                <th>SL / TP</th>
-                <th>Size (NQ / MNQ)</th>
-                <th>Risk</th>
+                <th>Exit</th>
+                <th>PnL %</th>
+                <th>PnL $</th>
+                <th>Cumulative $</th>
               </tr>
             </thead>
             <tbody>
-              ${journalRecent.map(
+              ${historyRows.map(
     (row) => html`
-                  <tr key=${row.event_id}>
-                    <td>${row.execute_at_et || "--"}</td>
+                  <tr key=${row.trade_id || row.event_id || `${row.entry_time_et || row.entry_et}-${row.exit_time_et || row.exit_et}`}>
+                    <td>${row.entry_time_et || row.entry_et || "--"}</td>
+                    <td>${row.exit_time_et || row.exit_et || "--"}</td>
                     <td>
-                      <span className=${row.action === "BUY" ? "tag live" : row.action === "SELL" ? "tag" : "tag muted"}
-                        >${row.action || "HOLD"}</span
+                      <span className=${String(row.direction || "").includes("LONG") ? "tag live" : "tag"}
+                        >${row.direction || row.action || "--"}</span
                       >
                     </td>
-                    <td>${row.entry_reference ?? "--"}</td>
-                    <td>${`${row.stop_price ?? "--"} / ${row.target_price ?? "--"}`}</td>
-                    <td>${`${row.nq_contracts ?? 0} / ${row.mnq_contracts ?? 0}`}</td>
-                    <td>${`$${Number(row.risk_per_trade_usd || 0).toFixed(2)}`}</td>
+                    <td>${row.entry_price ?? row.entry_reference ?? "--"}</td>
+                    <td>${row.exit_price ?? "--"}</td>
+                    <td>${`${Number(row.pnl_pct ?? row.trade_profit_pct ?? 0).toFixed(3)}%`}</td>
+                    <td>${`$${Number(row.pnl_usd ?? row.trade_profit_usd ?? row.trade_pnl_usd ?? 0).toFixed(2)}`}</td>
+                    <td>${`$${Number(row.cumulative_pnl_usd ?? row.total_pnl_usd ?? 0).toFixed(2)}`}</td>
                   </tr>
                 `
   )}
@@ -26405,7 +26413,26 @@ var EMPTY = {
       first_logged_at_et: null,
       last_logged_at_et: null
     },
-    recent: []
+    recent: [],
+    all: []
+  },
+  trade_history: {
+    path: "",
+    csv_path: "",
+    summary: {
+      total_trades: 0,
+      winning_trades: 0,
+      losing_trades: 0,
+      win_rate_pct: 0,
+      avg_pnl_pct: 0,
+      total_pnl_pct: 0,
+      avg_pnl_usd: 0,
+      total_pnl_usd: 0,
+      first_entry_et: null,
+      last_exit_et: null
+    },
+    recent: [],
+    all: []
   },
   signal_mix: { buy: 0, sell: 0, hold: 0 },
   config: { cvar_alpha: 0.95, risk_aversion: 3 },

@@ -198,29 +198,83 @@ def _build_closed_trades(entries: list[dict[str, Any]]) -> tuple[list[dict[str, 
     return closed, summary
 
 
-def _write_closed_trade_csv(path: Path, rows: list[dict[str, Any]]) -> None:
+def _write_trade_history_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
         "trade_id",
-        "entry_time_et",
         "entry_time_unix",
+        "entry_unix",
+        "entry_time_et",
+        "entry_et",
         "exit_time_et",
         "exit_time_unix",
+        "exit_unix",
+        "exit_et",
         "side",
+        "direction",
         "entry_price",
         "exit_price",
         "nq_contracts",
         "mnq_contracts",
+        "bars_held",
         "point_value_usd",
         "pnl_points",
+        "pnl_pct",
         "trade_pnl_usd",
+        "pnl_usd",
+        "trade_profit_pct",
+        "trade_profit_usd",
         "total_pnl_usd",
+        "cumulative_pnl_pct",
+        "cumulative_pnl_usd",
+        "result",
+        "updated_at_utc",
     ]
     with path.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer = csv.DictWriter(fh, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+
+def _summarize_trade_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    if not rows:
+        return {
+            "total_trades": 0,
+            "winning_trades": 0,
+            "losing_trades": 0,
+            "win_rate_pct": 0.0,
+            "avg_pnl_pct": 0.0,
+            "total_pnl_pct": 0.0,
+            "avg_pnl_usd": 0.0,
+            "total_pnl_usd": 0.0,
+            "first_entry_et": None,
+            "last_exit_et": None,
+        }
+
+    pnl_pct_vals: list[float] = []
+    pnl_usd_vals: list[float] = []
+    for row in rows:
+        pnl_pct = _safe_float(row.get("pnl_pct", row.get("trade_profit_pct", 0.0)), 0.0)
+        pnl_usd = _safe_float(row.get("pnl_usd", row.get("trade_profit_usd", 0.0)), 0.0)
+        pnl_pct_vals.append(pnl_pct)
+        pnl_usd_vals.append(pnl_usd)
+
+    wins = sum(1 for x in pnl_pct_vals if x > 0)
+    losses = len(pnl_pct_vals) - wins
+
+    return {
+        "total_trades": len(rows),
+        "winning_trades": wins,
+        "losing_trades": losses,
+        "win_rate_pct": round((wins / len(rows)) * 100.0, 4) if rows else 0.0,
+        "avg_pnl_pct": round(sum(pnl_pct_vals) / len(pnl_pct_vals), 8),
+        "total_pnl_pct": round(sum(pnl_pct_vals), 8),
+        "avg_pnl_usd": round(sum(pnl_usd_vals) / len(pnl_usd_vals), 4),
+        "total_pnl_usd": round(sum(pnl_usd_vals), 4),
+        "first_entry_et": rows[0].get("entry_time_et", rows[0].get("entry_et")),
+        "last_exit_et": rows[-1].get("exit_time_et", rows[-1].get("exit_et")),
+    }
 
 
 def main() -> None:
@@ -229,40 +283,56 @@ def main() -> None:
 
     payload = server._build_payload()
 
-    entry_rows = _load_jsonl(ENTRY_JSONL)
-    closed_rows, closed_summary = _build_closed_trades(entry_rows)
-
-    # Expose persistent lifecycle stats in payload (used by UI / downstream tools).
     trade_journal = payload.setdefault("trade_journal", {})
+    journal_rows = trade_journal.get("all")
+    if not isinstance(journal_rows, list):
+        journal_rows = _load_jsonl(ENTRY_JSONL)
     trade_journal["path"] = "./trade_logs/nq_trade_journal.jsonl"
     trade_journal["csv_path"] = "./trade_logs/nq_trade_journal.csv"
-    trade_journal["closed_summary"] = closed_summary
-    trade_journal["closed_recent"] = closed_rows[-120:]
-    trade_journal["history_csv_path"] = "./data/trade_history.csv"
+    trade_journal["all"] = journal_rows
+    trade_journal["recent"] = journal_rows
+
+    trade_history = payload.setdefault("trade_history", {})
+    history_rows = trade_history.get("all")
+    if not isinstance(history_rows, list):
+        history_rows = trade_history.get("recent")
+    if not isinstance(history_rows, list) or not history_rows:
+        # Fallback path if upstream payload does not expose trade_history yet.
+        closed_rows, _ = _build_closed_trades(journal_rows)
+        history_rows = closed_rows
+    history_summary = trade_history.get("summary")
+    if not isinstance(history_summary, dict) or not history_summary:
+        history_summary = _summarize_trade_rows(history_rows)
+
+    trade_history["path"] = "./trade_logs/nq_trade_history.jsonl"
+    trade_history["csv_path"] = "./trade_logs/nq_trade_history.csv"
+    trade_history["all"] = history_rows
+    trade_history["recent"] = history_rows
+    trade_history["summary"] = history_summary
 
     payload.setdefault("meta", {})["snapshot_generated_utc"] = datetime.now(tz=timezone.utc).isoformat()
 
     DASHBOARD_JSON.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     FALLBACK_JSON.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    history_payload = {
+    trade_history_payload = {
         "generated_utc": datetime.now(tz=timezone.utc).isoformat(),
-        "summary": closed_summary,
-        "trades": closed_rows,
+        "summary": history_summary,
+        "trades": history_rows,
     }
-    TRADE_HISTORY_JSON.write_text(json.dumps(history_payload, indent=2), encoding="utf-8")
-    _write_closed_trade_csv(TRADE_HISTORY_CSV, closed_rows)
+    TRADE_HISTORY_JSON.write_text(json.dumps(trade_history_payload, indent=2), encoding="utf-8")
+    _write_trade_history_csv(TRADE_HISTORY_CSV, history_rows)
 
     if ENTRY_CSV.exists():
         ENTRY_COPY_CSV.write_text(ENTRY_CSV.read_text(encoding="utf-8"), encoding="utf-8")
 
     print(
         "snapshot_ok",
-        f"entries={len(entry_rows)}",
-        f"closed={closed_summary['total_closed']}",
-        f"wins={closed_summary['winning_trades']}",
-        f"losses={closed_summary['losing_trades']}",
-        f"total_pnl={closed_summary['total_pnl_usd']:.2f}",
+        f"journal_entries={len(journal_rows)}",
+        f"history_trades={len(history_rows)}",
+        f"wins={history_summary.get('winning_trades', 0)}",
+        f"losses={history_summary.get('losing_trades', 0)}",
+        f"total_pnl_usd={float(history_summary.get('total_pnl_usd', 0.0)):.2f}",
     )
 
 
