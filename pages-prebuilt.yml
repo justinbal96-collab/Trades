@@ -1,0 +1,55 @@
+name: Deploy GitHub Pages (Prebuilt)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-prebuilt
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage static site (prebuilt assets only)
+        run: |
+          set -euo pipefail
+          mkdir -p _site/dist _site/data
+          cp index.html app.css site-config.js dashboard-fallback.json _site/
+          if [ -f dist/app.js ]; then
+            cp dist/app.js _site/dist/
+          elif [ -f app.js ]; then
+            cp app.js _site/dist/app.js
+          else
+            echo "No app bundle found (dist/app.js or app.js)." >&2
+            exit 1
+          fi
+          if [ -d data ]; then
+            cp -R data/. _site/data/
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
