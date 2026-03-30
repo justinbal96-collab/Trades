@@ -122,6 +122,23 @@ def _format_et(ts: int | float) -> str:
     return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ).strftime("%H:%M:%S ET")
 
 
+def _format_et_trade(ts: int | float) -> str:
+    return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ).strftime("%Y-%m-%d %H:%M:%S ET")
+
+
+def _utc_iso_to_et_label(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except Exception:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(ET_TZ).strftime("%Y-%m-%d %H:%M:%S ET")
+
+
 def _format_et_short(ts: int | float) -> str:
     return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(ET_TZ).strftime("%H:%M")
 
@@ -146,6 +163,16 @@ def _load_trade_journal_rows() -> list[dict[str, Any]]:
             except json.JSONDecodeError:
                 continue
             if isinstance(row, dict):
+                execute_at_unix = 0
+                try:
+                    execute_at_unix = int(float(row.get("execute_at_unix", 0) or 0))
+                except (TypeError, ValueError):
+                    execute_at_unix = 0
+                if execute_at_unix > 0:
+                    row["execute_at_et"] = _format_et_trade(execute_at_unix)
+                logged_at_et = _utc_iso_to_et_label(row.get("logged_at_utc"))
+                if logged_at_et:
+                    row["logged_at_et"] = logged_at_et
                 rows.append(row)
     except Exception:
         return []
@@ -306,8 +333,33 @@ def _upsert_trade_history(new_rows: list[dict[str, Any]]) -> list[dict[str, Any]
         item["trade_profit_pct"] = float(pnl_pct)
         item["pnl_usd"] = float(pnl_usd)
         item["trade_profit_usd"] = float(pnl_usd)
-        item["entry_time_et"] = item.get("entry_time_et", item.get("entry_et"))
-        item["exit_time_et"] = item.get("exit_time_et", item.get("exit_et"))
+
+        entry_unix = 0
+        try:
+            entry_unix = int(float(item.get("entry_unix", item.get("entry_time_unix", 0)) or 0))
+        except (TypeError, ValueError):
+            entry_unix = 0
+        if entry_unix > 0:
+            entry_label = _format_et_trade(entry_unix)
+            item["entry_unix"] = entry_unix
+            item["entry_et"] = entry_label
+            item["entry_time_et"] = entry_label
+        else:
+            item["entry_time_et"] = item.get("entry_time_et", item.get("entry_et"))
+
+        exit_unix = 0
+        try:
+            exit_unix = int(float(item.get("exit_unix", item.get("exit_time_unix", 0)) or 0))
+        except (TypeError, ValueError):
+            exit_unix = 0
+        if exit_unix > 0:
+            exit_label = _format_et_trade(exit_unix)
+            item["exit_unix"] = exit_unix
+            item["exit_et"] = exit_label
+            item["exit_time_et"] = exit_label
+        else:
+            item["exit_time_et"] = item.get("exit_time_et", item.get("exit_et"))
+
         running_pct += pnl_pct
         running_usd += pnl_usd
         item["cumulative_pnl_pct"] = float(running_pct)
@@ -1228,7 +1280,7 @@ def _derive_trade_history(
                 pnl_pct = (trade_curve - 1.0) * 100.0
                 pnl_usd = ACCOUNT_SIZE * (pnl_pct / 100.0)
                 trade["exit_unix"] = bar_ts
-                trade["exit_et"] = _format_et(bar_ts)
+                trade["exit_et"] = _format_et_trade(bar_ts)
                 trade["exit_time_et"] = trade["exit_et"]
                 trade["exit_price"] = round(px, 2)
                 trade["bars_held"] = int(max(1, bars_held))
@@ -1246,8 +1298,8 @@ def _derive_trade_history(
                 trade = {
                     "trade_id": f"{prev_bar_ts}|{'LONG' if s > 0 else 'SHORT'}",
                     "entry_unix": prev_bar_ts,
-                    "entry_et": _format_et(prev_bar_ts),
-                    "entry_time_et": _format_et(prev_bar_ts),
+                    "entry_et": _format_et_trade(prev_bar_ts),
+                    "entry_time_et": _format_et_trade(prev_bar_ts),
                     "entry_price": round(px, 2),
                     "direction": "LONG" if s > 0 else "SHORT",
                 }
@@ -1266,7 +1318,7 @@ def _derive_trade_history(
         pnl_pct = (trade_curve - 1.0) * 100.0
         pnl_usd = ACCOUNT_SIZE * (pnl_pct / 100.0)
         trade["exit_unix"] = end_ts
-        trade["exit_et"] = _format_et(end_ts)
+        trade["exit_et"] = _format_et_trade(end_ts)
         trade["exit_time_et"] = trade["exit_et"]
         trade["exit_price"] = round(end_px, 2)
         trade["bars_held"] = int(max(1, bars_held))
@@ -1482,6 +1534,7 @@ def _build_payload() -> dict[str, Any]:
     latest_ts = timestamps[-1]
     next_bar_ts = latest_ts + BAR_INTERVAL_MIN * 60
     now_et = _now_et().strftime("%H:%M:%S ET")
+    now_et_full = _now_et().strftime("%Y-%m-%d %H:%M:%S ET")
 
     def _sig_label(sig: int) -> str:
         if sig > 0:
@@ -1633,10 +1686,10 @@ def _build_payload() -> dict[str, Any]:
                 f"{int(next_bar_ts)}|{_sig_label(next_signal)}|"
                 f"{round(entry_ref, 2)}|{int(nq_contracts)}|{int(mnq_contracts)}"
             ),
-            "logged_at_et": now_et,
+            "logged_at_et": now_et_full,
             "logged_at_utc": datetime.now(tz=timezone.utc).isoformat(),
-            "signal_time_et": _format_et(latest_ts),
-            "execute_at_et": _format_et(next_bar_ts),
+            "signal_time_et": _format_et_trade(latest_ts),
+            "execute_at_et": _format_et_trade(next_bar_ts),
             "execute_at_unix": int(next_bar_ts),
             "action": _sig_label(next_signal),
             "entry_reference": round(entry_ref, 2),

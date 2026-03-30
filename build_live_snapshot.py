@@ -76,9 +76,55 @@ def _et_iso_from_unix(unix_ts: int | None) -> str | None:
         return None
     try:
         dt = datetime.fromtimestamp(int(unix_ts), tz=timezone.utc).astimezone(server.ET_TZ)
-        return dt.isoformat()
+        return dt.strftime("%Y-%m-%d %H:%M:%S ET")
     except Exception:
         return None
+
+
+def _normalize_journal_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item = dict(row)
+        execute_unix = _safe_int(item.get("execute_at_unix"), 0)
+        if execute_unix > 0:
+            item["execute_at_et"] = _et_iso_from_unix(execute_unix) or item.get("execute_at_et")
+        logged_utc = str(item.get("logged_at_utc", "") or "").strip()
+        if logged_utc:
+            try:
+                dt = datetime.fromisoformat(logged_utc.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                item["logged_at_et"] = dt.astimezone(server.ET_TZ).strftime("%Y-%m-%d %H:%M:%S ET")
+            except Exception:
+                pass
+        out.append(item)
+    return out
+
+
+def _normalize_history_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item = dict(row)
+        entry_unix = _safe_int(item.get("entry_unix", item.get("entry_time_unix")), 0)
+        if entry_unix > 0:
+            entry_label = _et_iso_from_unix(entry_unix)
+            if entry_label:
+                item["entry_unix"] = entry_unix
+                item["entry_time_et"] = entry_label
+                item["entry_et"] = entry_label
+        exit_unix = _safe_int(item.get("exit_unix", item.get("exit_time_unix")), 0)
+        if exit_unix > 0:
+            exit_label = _et_iso_from_unix(exit_unix)
+            if exit_label:
+                item["exit_unix"] = exit_unix
+                item["exit_time_et"] = exit_label
+                item["exit_et"] = exit_label
+        out.append(item)
+    return out
 
 
 def _build_closed_trades(entries: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -111,7 +157,7 @@ def _build_closed_trades(entries: list[dict[str, Any]]) -> tuple[list[dict[str, 
                 "action": action,
                 "side": 1 if action == "BUY" else -1,
                 "execute_at_unix": execute_unix,
-                "execute_at_et": row.get("execute_at_et") or _et_iso_from_unix(execute_unix),
+                "execute_at_et": _et_iso_from_unix(execute_unix) or row.get("execute_at_et"),
                 "entry_price": entry_price,
                 "nq_contracts": nq_contracts,
                 "mnq_contracts": mnq_contracts,
@@ -287,6 +333,7 @@ def main() -> None:
     journal_rows = trade_journal.get("all")
     if not isinstance(journal_rows, list):
         journal_rows = _load_jsonl(ENTRY_JSONL)
+    journal_rows = _normalize_journal_rows(journal_rows)
     trade_journal["path"] = "./trade_logs/nq_trade_journal.jsonl"
     trade_journal["csv_path"] = "./trade_logs/nq_trade_journal.csv"
     trade_journal["all"] = journal_rows
@@ -300,6 +347,7 @@ def main() -> None:
         # Fallback path if upstream payload does not expose trade_history yet.
         closed_rows, _ = _build_closed_trades(journal_rows)
         history_rows = closed_rows
+    history_rows = _normalize_history_rows(history_rows)
     history_summary = trade_history.get("summary")
     if not isinstance(history_summary, dict) or not history_summary:
         history_summary = _summarize_trade_rows(history_rows)
