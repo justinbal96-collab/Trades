@@ -104,16 +104,19 @@ export function DashboardPage({ data }) {
   const k = data.kpis || {};
   const checks = execPlan.prop_rules?.checks || [];
 
+  const th = data.trade_history?.summary || {};
+  const liveTrades = Number(th.total_trades ?? th.total_closed ?? 0);
+  const livePnlUsd = Number(th.total_pnl_usd ?? th.latest_total_pnl_usd ?? 0);
   const perfRows = [
     {
       name: "Main Live NQ Model",
-      returnPct: Number(k.total_return_pct || 0),
-      pnl: accountSize * (Number(k.total_return_pct || 0) / 100),
+      returnPct: livePnlUsd / accountSize * 100,
+      pnl: livePnlUsd,
       sharpe: Number(k.sharpe_rolling_20 || 0),
       maxDdPct: Number(k.max_drawdown_pct || 0),
       maxDdUsd: accountSize * (Number(k.max_drawdown_pct || 0) / 100),
-      winPct: Number(k.win_rate_pct || 0),
-      trades: Number(k.n_trades || 0),
+      winPct: Number(th.win_rate_pct || k.win_rate_pct || 0),
+      trades: liveTrades || Number(k.n_trades || 0),
     },
     {
       name: "KX Distillation Backtest",
@@ -239,15 +242,8 @@ export function DashboardPage({ data }) {
         </p>
         <ul className="table-list">
           <li><span>Backtest window</span><b>${`${execPlan.backtest_window?.start_et || "--"} to ${execPlan.backtest_window?.end_et || "--"}`}</b></li>
-          <li>
-            <span>Bars / trading session-days</span>
-            <b>${`${execPlan.backtest_window?.bars || 0} / ${execPlan.backtest_window?.trading_session_days || 0}`}</b>
-          </li>
-          <li><span>Trades per trading session-day</span><b>${execPlan.backtest_window?.trades_per_session || 0}</b></li>
-          <li>
-            <span>Trades per 78-bar equiv day</span>
-            <b>${execPlan.backtest_window?.trades_per_session_equiv_78bar ?? 0}</b>
-          </li>
+          <li><span>Bars / session-equivalent</span><b>${`${execPlan.backtest_window?.bars || 0} / ${execPlan.backtest_window?.sessions_equiv || 0}`}</b></li>
+          <li><span>Trades per session</span><b>${execPlan.backtest_window?.trades_per_session || 0}</b></li>
           <li><span>Average return per trade</span><b>${pct(execPlan.backtest_window?.avg_return_per_trade_pct || 0, 3)}</b></li>
         </ul>
       </section>

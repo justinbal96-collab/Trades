@@ -25924,16 +25924,19 @@ function DashboardPage({ data }) {
   const action = buildActionDecision(data);
   const k = data.kpis || {};
   const checks = execPlan.prop_rules?.checks || [];
+  const th = data.trade_history?.summary || {};
+  const liveTrades = Number(th.total_trades ?? th.total_closed ?? 0);
+  const livePnlUsd = Number(th.total_pnl_usd ?? th.latest_total_pnl_usd ?? 0);
   const perfRows = [
     {
       name: "Main Live NQ Model",
-      returnPct: Number(k.total_return_pct || 0),
-      pnl: accountSize * (Number(k.total_return_pct || 0) / 100),
+      returnPct: livePnlUsd / accountSize * 100,
+      pnl: livePnlUsd,
       sharpe: Number(k.sharpe_rolling_20 || 0),
       maxDdPct: Number(k.max_drawdown_pct || 0),
       maxDdUsd: accountSize * (Number(k.max_drawdown_pct || 0) / 100),
-      winPct: Number(k.win_rate_pct || 0),
-      trades: Number(k.n_trades || 0)
+      winPct: Number(th.win_rate_pct || k.win_rate_pct || 0),
+      trades: liveTrades || Number(k.n_trades || 0)
     },
     {
       name: "KX Distillation Backtest",
@@ -26058,15 +26061,8 @@ function DashboardPage({ data }) {
         </p>
         <ul className="table-list">
           <li><span>Backtest window</span><b>${`${execPlan.backtest_window?.start_et || "--"} to ${execPlan.backtest_window?.end_et || "--"}`}</b></li>
-          <li>
-            <span>Bars / trading session-days</span>
-            <b>${`${execPlan.backtest_window?.bars || 0} / ${execPlan.backtest_window?.trading_session_days || 0}`}</b>
-          </li>
-          <li><span>Trades per trading session-day</span><b>${execPlan.backtest_window?.trades_per_session || 0}</b></li>
-          <li>
-            <span>Trades per 78-bar equiv day</span>
-            <b>${execPlan.backtest_window?.trades_per_session_equiv_78bar ?? 0}</b>
-          </li>
+          <li><span>Bars / session-equivalent</span><b>${`${execPlan.backtest_window?.bars || 0} / ${execPlan.backtest_window?.sessions_equiv || 0}`}</b></li>
+          <li><span>Trades per session</span><b>${execPlan.backtest_window?.trades_per_session || 0}</b></li>
           <li><span>Average return per trade</span><b>${pct(execPlan.backtest_window?.avg_return_per_trade_pct || 0, 3)}</b></li>
         </ul>
       </section>
@@ -26224,41 +26220,6 @@ function RiskPage({ data }) {
 }
 
 // src/pages/SignalsPage.js
-function _formatEtFromUnix(unixSec) {
-  const n2 = Number(unixSec);
-  if (!Number.isFinite(n2) || n2 <= 0) return null;
-  const dt = new Date(n2 * 1e3);
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-  }).formatToParts(dt);
-  const pick = (type) => parts.find((p) => p.type === type)?.value || "";
-  const y = pick("year");
-  const m = pick("month");
-  const d = pick("day");
-  const hh = pick("hour");
-  const mm = pick("minute");
-  const ss = pick("second");
-  if (!y || !m || !d || !hh || !mm || !ss) return null;
-  return `${y}-${m}-${d} ${hh}:${mm}:${ss} ET`;
-}
-function _formatTradeEt(row, side) {
-  const isEntry = side === "entry";
-  const label = isEntry ? row.entry_time_et || row.entry_et : row.exit_time_et || row.exit_et;
-  if (typeof label === "string" && /^\d{4}-\d{2}-\d{2}\s/.test(label)) {
-    return label;
-  }
-  const unixRaw = isEntry ? row.entry_unix ?? row.entry_time_unix : row.exit_unix ?? row.exit_time_unix;
-  const fromUnix = _formatEtFromUnix(unixRaw);
-  if (fromUnix) return fromUnix;
-  return label || "--";
-}
 function SignalsPage({ data }) {
   const signals = data.signals || [];
   const latest = data.kpis || {};
@@ -26397,8 +26358,8 @@ function SignalsPage({ data }) {
               ${historyRows.map(
     (row) => html`
                   <tr key=${row.trade_id || row.event_id || `${row.entry_time_et || row.entry_et}-${row.exit_time_et || row.exit_et}`}>
-                    <td>${_formatTradeEt(row, "entry")}</td>
-                    <td>${_formatTradeEt(row, "exit")}</td>
+                    <td>${row.entry_time_et || row.entry_et || "--"}</td>
+                    <td>${row.exit_time_et || row.exit_et || "--"}</td>
                     <td>
                       <span className=${String(row.direction || "").includes("LONG") ? "tag live" : "tag"}
                         >${row.direction || row.action || "--"}</span
