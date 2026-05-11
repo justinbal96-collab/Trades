@@ -1,30 +1,30 @@
 {
   "meta": {
     "symbol": "NQ=F",
-    "as_of_et": "19:19:04 ET",
-    "live_last_bar_et": "19:19:04 ET",
+    "as_of_et": "21:13:50 ET",
+    "live_last_bar_et": "21:13:50 ET",
     "evaluation_mode": "live",
     "range_5m": "60d",
-    "n_bars": 13432,
+    "n_bars": 13456,
     "window_start_et": "2026-03-01 18:10:00 ET",
-    "window_end_et": "2026-05-10 19:19:04 ET",
-    "last_price": 29335.5,
-    "snapshot_generated_utc": "2026-05-10T23:29:11.553516+00:00"
+    "window_end_et": "2026-05-10 21:13:50 ET",
+    "last_price": 29292.25,
+    "snapshot_generated_utc": "2026-05-11T01:23:56.920691+00:00"
   },
-  "headline": "Short-term continuation favored while volatility compresses.",
+  "headline": "Momentum pressure rising as downside volatility expands.",
   "subheadline": "Live NQ feed blended with NVIDIA QPO scenario optimization and KX distillation backtest conventions.",
   "watchlist": [
     {
       "symbol": "NQ",
-      "change_pct": 5.35
+      "change_pct": 5.18
     },
     {
       "symbol": "ES",
-      "change_pct": 2.29
+      "change_pct": 2.23
     },
     {
       "symbol": "RTY",
-      "change_pct": 1.56
+      "change_pct": 1.45
     },
     {
       "symbol": "VX",
@@ -48,36 +48,36 @@
   "health": {
     "model": "Healthy",
     "feed": "Synced",
-    "drift": "-2.80%"
+    "drift": "+0.24%"
   },
   "risk": {
     "account_size": 50000,
-    "allocated_pct": 0.0
+    "allocated_pct": 21.0
   },
   "execution_plan": {
     "eligible": false,
     "action_next_bar": "HOLD",
     "current_position": "HOLD",
     "signal_changed": false,
-    "as_of_et": "19:19:04 ET",
-    "next_bar_et": "19:24:04 ET",
-    "entry_reference": 29335.5,
+    "as_of_et": "21:13:50 ET",
+    "next_bar_et": "21:18:50 ET",
+    "entry_reference": 29292.25,
     "stop_price": null,
     "target_price": null,
-    "stop_distance_points": 22.75,
-    "target_distance_points": 36.5,
+    "stop_distance_points": 30.25,
+    "target_distance_points": 48.5,
     "risk_per_trade_usd": 250.0,
     "contract_plan": {
       "nq": 0,
       "mnq": 0,
-      "risk_per_nq_usd": 455.0,
-      "risk_per_mnq_usd": 45.5,
+      "risk_per_nq_usd": 605.0,
+      "risk_per_mnq_usd": 60.5,
       "sleeve_weight": 0.0
     },
     "prop_rules": {
       "max_trades_per_day": 12,
-      "trades_today": 0,
-      "daily_model_pnl_usd": 0.0,
+      "trades_today": 4,
+      "daily_model_pnl_usd": -121.07,
       "daily_loss_limit_usd": 1000.0,
       "checks": [
         {
@@ -93,32 +93,32 @@
         {
           "name": "Same-Day Session Window",
           "pass": true,
-          "detail": "Next bar 2026-05-10 19:24:04 ET must be within the NQ session window (18:00 -> 16:55 ET pre-close flatten)."
+          "detail": "Next bar 2026-05-10 21:18:50 ET must be within the NQ session window (18:00 -> 16:55 ET pre-close flatten)."
         },
         {
           "name": "Daily Trade Cap",
           "pass": true,
-          "detail": "0/12 signal changes today."
+          "detail": "4/12 signal changes today."
         },
         {
           "name": "Daily Loss Guard",
           "pass": true,
-          "detail": "Model day PnL $0.00 vs limit -$1,000.00."
+          "detail": "Model day PnL $-121.07 vs limit -$1,000.00."
         }
       ]
     },
     "backtest_window": {
       "start_et": "2026-03-01 18:10:00 ET",
-      "end_et": "2026-05-10 19:19:04 ET",
+      "end_et": "2026-05-10 21:13:50 ET",
       "range_5m": "60d",
-      "bars": 13432,
+      "bars": 13456,
       "trading_session_days": 51,
-      "sessions_equiv_78bar": 172.21,
-      "sessions_equiv": 172.21,
-      "trades": 56,
-      "trades_per_session": 1.1,
-      "trades_per_session_equiv_78bar": 0.33,
-      "avg_return_per_trade_pct": -0.0189
+      "sessions_equiv_78bar": 172.51,
+      "sessions_equiv": 172.51,
+      "trades": 60,
+      "trades_per_session": 1.18,
+      "trades_per_session_equiv_78bar": 0.35,
+      "avg_return_per_trade_pct": -0.0217
     },
     "constraint_checks": {
       "max_hold_minutes": 90,
@@ -127,58 +127,35 @@
       "loss_cap_violation_count": 0,
       "cross_session_violation_count": 0,
       "exit_reason_distribution": {
-        "signal_flat": 36,
-        "loss_cap": 18,
+        "signal_flat": 37,
+        "loss_cap": 21,
         "time_cap": 2
       }
     },
     "notes": "Signal is generated on 5m bar close; execute on next 5m bar open to mirror model timing. Intrabar stop-touch exits enforce the $500 active-loss cap, max hold is 90 minutes, and overnight holds are blocked (same-session-day trades only)."
   },
   "kpis": {
-    "forecast_confidence_pct": 55.854738391203234,
-    "expected_session_return_pct": 1.7369418570081605,
-    "projected_max_drawdown_pct": -1.1193295625117936,
-    "sharpe_rolling_20": -1.2269352919400425,
-    "max_drawdown_pct": -1.6426897476827351,
-    "total_return_pct": -1.0606138272118426,
-    "win_rate_pct": 51.78571428571429,
-    "n_trades": 56,
-    "trades_per_day": 1.0980392156862746,
-    "avg_hold_minutes": 17.523011363636364,
+    "forecast_confidence_pct": 50.6424527389939,
+    "expected_session_return_pct": -1.5426959693378293,
+    "projected_max_drawdown_pct": -1.4879356418400258,
+    "sharpe_rolling_20": -1.4869248163475486,
+    "max_drawdown_pct": -1.9388979852634436,
+    "total_return_pct": -1.3000282652536943,
+    "win_rate_pct": 50.0,
+    "n_trades": 60,
+    "trades_per_day": 1.1764705882352942,
+    "avg_hold_minutes": 17.42443820224719,
     "max_hold_minutes_observed": 90.0,
     "max_hold_violation_count": 0,
     "loss_cap_violation_count": 0,
     "cross_session_violation_count": 0,
-    "winning_trades_lifetime": 155,
-    "losing_trades_lifetime": 197,
-    "total_pnl_lifetime_pct": 70.71982066565441,
-    "total_pnl_lifetime_usd": 35359.91033282721
+    "winning_trades_lifetime": 156,
+    "losing_trades_lifetime": 200,
+    "total_pnl_lifetime_pct": 69.10982066565441,
+    "total_pnl_lifetime_usd": 34554.91033282721
   },
   "forecast": {
     "points": [
-      29295.25,
-      29279.5,
-      29271.25,
-      29277.5,
-      29264.25,
-      29282.0,
-      29273.25,
-      29288.75,
-      29271.75,
-      29289.0,
-      29286.75,
-      29285.5,
-      29278.0,
-      29273.75,
-      29268.25,
-      29263.75,
-      29240.5,
-      29265.5,
-      29294.75,
-      29294.25,
-      29302.25,
-      29285.75,
-      29262.0,
       29276.5,
       29290.25,
       29300.5,
@@ -211,26 +188,49 @@
       29334.25,
       29321.5,
       29338.0,
-      29335.5
+      29333.25,
+      29304.0,
+      29300.25,
+      29298.25,
+      29310.0,
+      29311.75,
+      29304.0,
+      29305.0,
+      29332.5,
+      29367.75,
+      29369.25,
+      29362.0,
+      29381.25,
+      29387.75,
+      29398.5,
+      29384.5,
+      29388.0,
+      29368.0,
+      29297.0,
+      29295.75,
+      29256.5,
+      29284.75,
+      29288.5,
+      29292.25
     ],
     "horizon_label": "5m horizon \u2022 live feed \u2022 cost-adjusted"
   },
   "regimes": [
     {
-      "kind": "bull",
-      "label": "Impulse"
+      "kind": "neutral",
+      "label": "Absorb"
     },
     {
-      "kind": "neutral",
-      "label": "Balance"
+      "kind": "bull",
+      "label": "Trend Hold"
     },
     {
       "kind": "neutral",
       "label": "Pause"
     },
     {
-      "kind": "neutral",
-      "label": "Range"
+      "kind": "bear",
+      "label": "Stress"
     },
     {
       "kind": "bull",
@@ -241,22 +241,22 @@
       "label": "Balance"
     },
     {
-      "kind": "bear",
-      "label": "Liquidation"
+      "kind": "bull",
+      "label": "Reclaim"
     },
     {
-      "kind": "bull",
-      "label": "Drive"
+      "kind": "bear",
+      "label": "Stress"
     }
   ],
   "allocation": {
     "rows": [
       {
         "sleeve": "Long Signal",
-        "weight": 0.0,
-        "expected_return_pct": 0.01609807696095874,
-        "cvar_loss_pct": 0.0003659055386312732,
-        "daily_var_pct": -0.0,
+        "weight": 0.21,
+        "expected_return_pct": 0.016377869715259487,
+        "cvar_loss_pct": 0.0003704518879135531,
+        "daily_var_pct": -7.779489646184617e-05,
         "status": "Active"
       },
       {
@@ -269,7 +269,7 @@
       },
       {
         "sleeve": "Cash Buffer",
-        "weight": 1.0,
+        "weight": 0.79,
         "expected_return_pct": 0.0,
         "cvar_loss_pct": 0.0,
         "daily_var_pct": -0.0,
@@ -279,192 +279,31 @@
   },
   "events": [
     {
-      "time": "19:19",
-      "message": "NQ close synced at 29,335.50 from Yahoo 5m feed."
+      "time": "21:13",
+      "message": "NQ close synced at 29,292.25 from Yahoo 5m feed."
     },
     {
-      "time": "19:29:09",
-      "message": "Backtest updated: Sharpe -1.23, win rate 51.8%."
+      "time": "21:23:54",
+      "message": "Backtest updated: Sharpe -1.49, win rate 50.0%."
     },
     {
-      "time": "19:29:09",
-      "message": "CVaR sizing refreshed: long 0.00, short 0.00, cash 1.00."
+      "time": "21:23:54",
+      "message": "CVaR sizing refreshed: long 0.21, short 0.00, cash 0.79."
     },
     {
-      "time": "19:29:09",
+      "time": "21:23:54",
       "message": "KX distillation overlay: 500 FinGPT records, Sharpe -0.18, CVaR-sized Sharpe -0.15."
     },
     {
-      "time": "19:29:09",
+      "time": "21:23:54",
       "message": "QPO overlay: 600 Gaussian scenarios, gaussian fit, top sleeve ES."
     },
     {
-      "time": "19:29:09",
-      "message": "PDF trend overlay: 63d momentum +15.71%, bias LONG."
+      "time": "21:23:54",
+      "message": "PDF trend overlay: 63d momentum +15.53%, bias LONG."
     }
   ],
   "signals": [
-    {
-      "time": "15:45",
-      "close": 29305.5,
-      "signal": "HOLD",
-      "bar_return_pct": 0.017064555212368392,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "15:50",
-      "close": 29327.5,
-      "signal": "HOLD",
-      "bar_return_pct": 0.0750712323625258,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "15:55",
-      "close": 29340.0,
-      "signal": "HOLD",
-      "bar_return_pct": 0.04262211235188816,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:00",
-      "close": 29356.0,
-      "signal": "HOLD",
-      "bar_return_pct": 0.05453306066803,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:05",
-      "close": 29351.75,
-      "signal": "HOLD",
-      "bar_return_pct": -0.014477449243766179,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:10",
-      "close": 29343.75,
-      "signal": "HOLD",
-      "bar_return_pct": -0.027255615082575995,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:15",
-      "close": 29335.25,
-      "signal": "HOLD",
-      "bar_return_pct": -0.02896698615548456,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:20",
-      "close": 29343.75,
-      "signal": "HOLD",
-      "bar_return_pct": 0.028975379449638232,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:25",
-      "close": 29343.75,
-      "signal": "HOLD",
-      "bar_return_pct": 0.0,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:30",
-      "close": 29342.75,
-      "signal": "HOLD",
-      "bar_return_pct": -0.003407880724174654,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:35",
-      "close": 29342.0,
-      "signal": "HOLD",
-      "bar_return_pct": -0.0025559976484821638,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:40",
-      "close": 29341.0,
-      "signal": "HOLD",
-      "bar_return_pct": -0.0034080839751891483,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:45",
-      "close": 29343.25,
-      "signal": "HOLD",
-      "bar_return_pct": 0.007668450291401111,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:50",
-      "close": 29338.0,
-      "signal": "HOLD",
-      "bar_return_pct": -0.017891678665451168,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "16:55",
-      "close": 29332.5,
-      "signal": "HOLD",
-      "bar_return_pct": -0.01874701751994001,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:10",
-      "close": 29271.25,
-      "signal": "HOLD",
-      "bar_return_pct": -0.20881275036222618,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:15",
-      "close": 29250.5,
-      "signal": "HOLD",
-      "bar_return_pct": -0.0708886706239057,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:20",
-      "close": 29257.25,
-      "signal": "HOLD",
-      "bar_return_pct": 0.02307652860634861,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:25",
-      "close": 29272.75,
-      "signal": "HOLD",
-      "bar_return_pct": 0.05297832161259176,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:30",
-      "close": 29269.0,
-      "signal": "HOLD",
-      "bar_return_pct": -0.012810549060132716,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:35",
-      "close": 29263.25,
-      "signal": "HOLD",
-      "bar_return_pct": -0.019645358570501214,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:40",
-      "close": 29269.5,
-      "signal": "HOLD",
-      "bar_return_pct": 0.021357846445627195,
-      "strategy_return_pct": 0.0
-    },
-    {
-      "time": "18:45",
-      "close": 29283.5,
-      "signal": "HOLD",
-      "bar_return_pct": 0.04783136028972138,
-      "strategy_return_pct": 0.0
-    },
     {
       "time": "18:50",
       "close": 29279.75,
@@ -508,11 +347,172 @@
       "strategy_return_pct": 0.0
     },
     {
-      "time": "19:19",
-      "close": 29335.5,
+      "time": "19:20",
+      "close": 29333.25,
       "signal": "HOLD",
-      "bar_return_pct": -0.008521371599972733,
+      "bar_return_pct": -0.01619060603994819,
       "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:25",
+      "close": 29304.0,
+      "signal": "HOLD",
+      "bar_return_pct": -0.09971619237554652,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:30",
+      "close": 29300.25,
+      "signal": "HOLD",
+      "bar_return_pct": -0.012796887796887797,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:35",
+      "close": 29298.25,
+      "signal": "HOLD",
+      "bar_return_pct": -0.006825880325253198,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:40",
+      "close": 29310.0,
+      "signal": "HOLD",
+      "bar_return_pct": 0.040104784415451435,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:45",
+      "close": 29311.75,
+      "signal": "HOLD",
+      "bar_return_pct": 0.005970658478335039,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:50",
+      "close": 29304.0,
+      "signal": "HOLD",
+      "bar_return_pct": -0.026439908910249305,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "19:55",
+      "close": 29305.0,
+      "signal": "HOLD",
+      "bar_return_pct": 0.003412503412503413,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:00",
+      "close": 29332.5,
+      "signal": "HOLD",
+      "bar_return_pct": 0.09384064152874935,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:05",
+      "close": 29367.75,
+      "signal": "HOLD",
+      "bar_return_pct": 0.12017386857581182,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:10",
+      "close": 29369.25,
+      "signal": "HOLD",
+      "bar_return_pct": 0.005107643588630385,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:15",
+      "close": 29362.0,
+      "signal": "HOLD",
+      "bar_return_pct": -0.024685683155000554,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:20",
+      "close": 29381.25,
+      "signal": "HOLD",
+      "bar_return_pct": 0.0655609290920237,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:25",
+      "close": 29387.75,
+      "signal": "HOLD",
+      "bar_return_pct": 0.02212295256328441,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:30",
+      "close": 29398.5,
+      "signal": "HOLD",
+      "bar_return_pct": 0.036579867461782545,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:35",
+      "close": 29384.5,
+      "signal": "HOLD",
+      "bar_return_pct": -0.047621477286256104,
+      "strategy_return_pct": 0.0
+    },
+    {
+      "time": "20:40",
+      "close": 29388.0,
+      "signal": "BUY",
+      "bar_return_pct": 0.011911041535503411,
+      "strategy_return_pct": -0.013088958464496588
+    },
+    {
+      "time": "20:45",
+      "close": 29368.0,
+      "signal": "BUY",
+      "bar_return_pct": -0.06805498843065197,
+      "strategy_return_pct": -0.06805498843065197
+    },
+    {
+      "time": "20:50",
+      "close": 29297.0,
+      "signal": "HOLD",
+      "bar_return_pct": -0.24175973849087443,
+      "strategy_return_pct": -0.04968673385998366
+    },
+    {
+      "time": "20:55",
+      "close": 29295.75,
+      "signal": "HOLD",
+      "bar_return_pct": -0.004266648462299894,
+      "strategy_return_pct": -0.08277298016861795
+    },
+    {
+      "time": "21:00",
+      "close": 29256.5,
+      "signal": "HOLD",
+      "bar_return_pct": -0.13397847810689265,
+      "strategy_return_pct": -0.0878967085669423
+    },
+    {
+      "time": "21:05",
+      "close": 29284.75,
+      "signal": "BUY",
+      "bar_return_pct": 0.0965597388614496,
+      "strategy_return_pct": 0.07155973886144959
+    },
+    {
+      "time": "21:10",
+      "close": 29288.5,
+      "signal": "BUY",
+      "bar_return_pct": 0.012805299686697002,
+      "strategy_return_pct": 0.012805299686697002
+    },
+    {
+      "time": "21:13",
+      "close": 29292.25,
+      "signal": "HOLD",
+      "bar_return_pct": 0.012803660139645253,
+      "strategy_return_pct": -0.025
     }
   ],
   "trade_journal": {
@@ -649,25 +649,25 @@
     "path": "./trade_logs/nq_trade_history.jsonl",
     "csv_path": "./trade_logs/nq_trade_history.csv",
     "summary": {
-      "total_trades": 352,
-      "winning_trades": 155,
-      "losing_trades": 197,
-      "win_rate_pct": 44.034090909090914,
-      "avg_pnl_pct": 0.2009085814365182,
-      "total_pnl_pct": 70.71982066565441,
-      "avg_pnl_usd": 100.45429071825912,
-      "total_pnl_usd": 35359.91033282721,
-      "avg_hold_minutes": 17.523011363636364,
+      "total_trades": 356,
+      "winning_trades": 156,
+      "losing_trades": 200,
+      "win_rate_pct": 43.82022471910113,
+      "avg_pnl_pct": 0.1941287097349843,
+      "total_pnl_pct": 69.10982066565441,
+      "avg_pnl_usd": 97.06435486749217,
+      "total_pnl_usd": 34554.91033282721,
+      "avg_hold_minutes": 17.42443820224719,
       "max_hold_minutes": 90.0,
       "exit_reason_distribution": {
         "unknown": 93,
-        "loss_cap": 116,
-        "signal_flat": 140,
+        "loss_cap": 119,
+        "signal_flat": 141,
         "time_cap": 2,
         "end_of_data": 1
       },
       "first_entry_et": "2026-01-16 10:15:00 ET",
-      "last_exit_et": "2026-05-07 21:50:00 ET"
+      "last_exit_et": "2026-05-10 21:10:00 ET"
     },
     "all": [
       {
@@ -5548,7 +5548,7 @@
         "pnl_usd": 1375.0,
         "trade_profit_usd": 1375.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.596866+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.295436+00:00",
         "cumulative_pnl_pct": 44.43719516451541,
         "cumulative_pnl_usd": 22218.5975822577
       },
@@ -5619,7 +5619,7 @@
         "pnl_usd": 255.0,
         "trade_profit_usd": 255.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.597255+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.295823+00:00",
         "cumulative_pnl_pct": 44.54165205232036,
         "cumulative_pnl_usd": 22270.82602616017
       },
@@ -5840,7 +5840,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.597886+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.296455+00:00",
         "cumulative_pnl_pct": 45.41477004064639,
         "cumulative_pnl_usd": 22707.385020323192
       },
@@ -5940,7 +5940,7 @@
         "pnl_usd": -240.0,
         "trade_profit_usd": -240.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.598273+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.296849+00:00",
         "cumulative_pnl_pct": 45.31203094953331,
         "cumulative_pnl_usd": 22656.01547476665
       },
@@ -6106,7 +6106,7 @@
         "pnl_usd": 425.0,
         "trade_profit_usd": 425.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.598481+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297050+00:00",
         "cumulative_pnl_pct": 46.76913420883756,
         "cumulative_pnl_usd": 23384.567104418777
       },
@@ -6135,7 +6135,7 @@
         "pnl_usd": -240.0,
         "trade_profit_usd": -240.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.598569+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297132+00:00",
         "cumulative_pnl_pct": 46.28913420883757,
         "cumulative_pnl_usd": 23144.567104418777
       },
@@ -6235,7 +6235,7 @@
         "pnl_usd": 920.0,
         "trade_profit_usd": 920.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599091+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297647+00:00",
         "cumulative_pnl_pct": 49.253183062478854,
         "cumulative_pnl_usd": 24626.591531239425
       },
@@ -6264,7 +6264,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.599151+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297704+00:00",
         "cumulative_pnl_pct": 48.253183062478854,
         "cumulative_pnl_usd": 24126.591531239425
       },
@@ -6293,7 +6293,7 @@
         "pnl_usd": 1055.0,
         "trade_profit_usd": 1055.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599215+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297764+00:00",
         "cumulative_pnl_pct": 50.36318306247885,
         "cumulative_pnl_usd": 25181.591531239425
       },
@@ -6364,7 +6364,7 @@
         "pnl_usd": 2570.0,
         "trade_profit_usd": 2570.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599685+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.298238+00:00",
         "cumulative_pnl_pct": 55.67962379043752,
         "cumulative_pnl_usd": 27839.811895218754
       },
@@ -6393,7 +6393,7 @@
         "pnl_usd": 5.0,
         "trade_profit_usd": 5.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599988+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.298537+00:00",
         "cumulative_pnl_pct": 55.689623790437516,
         "cumulative_pnl_usd": 27844.811895218754
       },
@@ -6451,7 +6451,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.600445+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.298997+00:00",
         "cumulative_pnl_pct": 60.13962379043752,
         "cumulative_pnl_usd": 30069.811895218754
       },
@@ -6480,7 +6480,7 @@
         "pnl_usd": 180.0,
         "trade_profit_usd": 180.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.600505+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.299053+00:00",
         "cumulative_pnl_pct": 60.49962379043752,
         "cumulative_pnl_usd": 30249.811895218754
       },
@@ -7391,7 +7391,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.603108+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.301713+00:00",
         "cumulative_pnl_pct": 63.60202079300484,
         "cumulative_pnl_usd": 31801.010396502414
       },
@@ -7420,7 +7420,7 @@
         "pnl_usd": -40.0,
         "trade_profit_usd": -40.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.603164+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.301764+00:00",
         "cumulative_pnl_pct": 63.52202079300484,
         "cumulative_pnl_usd": 31761.010396502414
       },
@@ -7665,7 +7665,7 @@
         "pnl_usd": 250.0,
         "trade_profit_usd": 250.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.603616+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.302223+00:00",
         "cumulative_pnl_pct": 70.20982066565443,
         "cumulative_pnl_usd": 35104.91033282721
       },
@@ -7694,7 +7694,7 @@
         "pnl_usd": 390.0,
         "trade_profit_usd": 390.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.603690+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.302302+00:00",
         "cumulative_pnl_pct": 70.98982066565443,
         "cumulative_pnl_usd": 35494.91033282721
       },
@@ -7723,7 +7723,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.603896+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.302489+00:00",
         "cumulative_pnl_pct": 69.98982066565443,
         "cumulative_pnl_usd": 34994.91033282721
       },
@@ -7926,7 +7926,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.604546+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303138+00:00",
         "cumulative_pnl_pct": 65.68982066565444,
         "cumulative_pnl_usd": 32844.91033282721
       },
@@ -7955,7 +7955,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.604586+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303173+00:00",
         "cumulative_pnl_pct": 64.68982066565444,
         "cumulative_pnl_usd": 32344.91033282721
       },
@@ -7984,7 +7984,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.604624+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303206+00:00",
         "cumulative_pnl_pct": 63.68982066565444,
         "cumulative_pnl_usd": 31844.91033282721
       },
@@ -8013,7 +8013,7 @@
         "pnl_usd": 75.0,
         "trade_profit_usd": 75.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.604661+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303239+00:00",
         "cumulative_pnl_pct": 63.839820665654436,
         "cumulative_pnl_usd": 31919.91033282721
       },
@@ -8042,7 +8042,7 @@
         "pnl_usd": 900.0,
         "trade_profit_usd": 900.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.604873+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303441+00:00",
         "cumulative_pnl_pct": 65.63982066565444,
         "cumulative_pnl_usd": 32819.91033282721
       },
@@ -8100,7 +8100,7 @@
         "pnl_usd": 290.0,
         "trade_profit_usd": 290.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.605013+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303578+00:00",
         "cumulative_pnl_pct": 66.05982066565444,
         "cumulative_pnl_usd": 33029.91033282721
       },
@@ -8448,7 +8448,7 @@
         "pnl_usd": -70.0,
         "trade_profit_usd": -70.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.605621+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.304195+00:00",
         "cumulative_pnl_pct": 65.28982066565443,
         "cumulative_pnl_usd": 32644.91033282721
       },
@@ -8622,7 +8622,7 @@
         "pnl_usd": 970.0,
         "trade_profit_usd": 970.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.606049+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.304612+00:00",
         "cumulative_pnl_pct": 72.16982066565443,
         "cumulative_pnl_usd": 36084.91033282721
       },
@@ -8651,7 +8651,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.606095+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.304655+00:00",
         "cumulative_pnl_pct": 71.16982066565443,
         "cumulative_pnl_usd": 35584.91033282721
       },
@@ -8767,7 +8767,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.606514+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305082+00:00",
         "cumulative_pnl_pct": 68.54982066565442,
         "cumulative_pnl_usd": 34274.91033282721
       },
@@ -8796,7 +8796,7 @@
         "pnl_usd": 975.0,
         "trade_profit_usd": 975.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.606624+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305190+00:00",
         "cumulative_pnl_pct": 70.49982066565443,
         "cumulative_pnl_usd": 35249.91033282721
       },
@@ -8825,7 +8825,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.606659+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305223+00:00",
         "cumulative_pnl_pct": 69.49982066565443,
         "cumulative_pnl_usd": 34749.91033282721
       },
@@ -8854,7 +8854,7 @@
         "pnl_usd": 430.0,
         "trade_profit_usd": 430.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.606702+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305305+00:00",
         "cumulative_pnl_pct": 70.35982066565442,
         "cumulative_pnl_usd": 35179.91033282721
       },
@@ -9260,7 +9260,7 @@
         "pnl_usd": -340.0,
         "trade_profit_usd": -340.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.608308+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.306996+00:00",
         "cumulative_pnl_pct": 65.89982066565442,
         "cumulative_pnl_usd": 32949.91033282721
       },
@@ -9289,7 +9289,7 @@
         "pnl_usd": 375.0,
         "trade_profit_usd": 375.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.608665+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307418+00:00",
         "cumulative_pnl_pct": 66.64982066565442,
         "cumulative_pnl_usd": 33324.91033282721
       },
@@ -9318,7 +9318,7 @@
         "pnl_usd": 580.0,
         "trade_profit_usd": 580.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.608781+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307518+00:00",
         "cumulative_pnl_pct": 67.80982066565441,
         "cumulative_pnl_usd": 33904.91033282721
       },
@@ -9347,7 +9347,7 @@
         "pnl_usd": 165.0,
         "trade_profit_usd": 165.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.608868+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307597+00:00",
         "cumulative_pnl_pct": 68.13982066565441,
         "cumulative_pnl_usd": 34069.91033282721
       },
@@ -9376,7 +9376,7 @@
         "pnl_usd": -15.0,
         "trade_profit_usd": -15.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.609264+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307990+00:00",
         "cumulative_pnl_pct": 68.10982066565441,
         "cumulative_pnl_usd": 34054.91033282721
       },
@@ -9405,7 +9405,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.609332+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.308052+00:00",
         "cumulative_pnl_pct": 67.10982066565441,
         "cumulative_pnl_usd": 33554.91033282721
       },
@@ -9434,7 +9434,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.609361+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.308081+00:00",
         "cumulative_pnl_pct": 66.10982066565441,
         "cumulative_pnl_usd": 33054.91033282721
       },
@@ -9463,7 +9463,7 @@
         "pnl_usd": 645.0,
         "trade_profit_usd": 645.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.609908+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.308630+00:00",
         "cumulative_pnl_pct": 67.39982066565442,
         "cumulative_pnl_usd": 33699.91033282721
       },
@@ -9492,7 +9492,7 @@
         "pnl_usd": 330.0,
         "trade_profit_usd": 330.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.612450+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.311262+00:00",
         "cumulative_pnl_pct": 68.05982066565441,
         "cumulative_pnl_usd": 34029.91033282721
       },
@@ -9521,7 +9521,7 @@
         "pnl_usd": 1885.0,
         "trade_profit_usd": 1885.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.612702+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.311521+00:00",
         "cumulative_pnl_pct": 71.82982066565441,
         "cumulative_pnl_usd": 35914.91033282721
       },
@@ -9550,7 +9550,7 @@
         "pnl_usd": 200.0,
         "trade_profit_usd": 200.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.613043+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.311850+00:00",
         "cumulative_pnl_pct": 72.22982066565442,
         "cumulative_pnl_usd": 36114.91033282721
       },
@@ -9608,7 +9608,7 @@
         "pnl_usd": -375.0,
         "trade_profit_usd": -375.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.613843+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.312661+00:00",
         "cumulative_pnl_pct": 71.47982066565442,
         "cumulative_pnl_usd": 35739.91033282721
       },
@@ -9695,7 +9695,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.614599+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313419+00:00",
         "cumulative_pnl_pct": 68.47982066565442,
         "cumulative_pnl_usd": 34239.91033282721
       },
@@ -9724,7 +9724,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.614635+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313452+00:00",
         "cumulative_pnl_pct": 67.47982066565442,
         "cumulative_pnl_usd": 33739.91033282721
       },
@@ -9753,7 +9753,7 @@
         "pnl_usd": 975.0,
         "trade_profit_usd": 975.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.614683+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313497+00:00",
         "cumulative_pnl_pct": 69.42982066565442,
         "cumulative_pnl_usd": 34714.91033282721
       },
@@ -9840,7 +9840,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.614838+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313639+00:00",
         "cumulative_pnl_pct": 66.42982066565442,
         "cumulative_pnl_usd": 33214.91033282721
       },
@@ -9898,7 +9898,7 @@
         "pnl_usd": 680.0,
         "trade_profit_usd": 680.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.614915+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313714+00:00",
         "cumulative_pnl_pct": 69.72982066565442,
         "cumulative_pnl_usd": 34864.91033282721
       },
@@ -9927,7 +9927,7 @@
         "pnl_usd": 175.0,
         "trade_profit_usd": 175.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.616010+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.314821+00:00",
         "cumulative_pnl_pct": 70.07982066565441,
         "cumulative_pnl_usd": 35039.91033282721
       },
@@ -9956,7 +9956,7 @@
         "pnl_usd": 1200.0,
         "trade_profit_usd": 1200.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.616219+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315033+00:00",
         "cumulative_pnl_pct": 72.47982066565442,
         "cumulative_pnl_usd": 36239.91033282721
       },
@@ -9985,7 +9985,7 @@
         "pnl_usd": -155.0,
         "trade_profit_usd": -155.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616647+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315472+00:00",
         "cumulative_pnl_pct": 72.16982066565441,
         "cumulative_pnl_usd": 36084.91033282721
       },
@@ -10014,7 +10014,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616694+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315514+00:00",
         "cumulative_pnl_pct": 71.16982066565441,
         "cumulative_pnl_usd": 35584.91033282721
       },
@@ -10043,7 +10043,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616735+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315551+00:00",
         "cumulative_pnl_pct": 70.16982066565441,
         "cumulative_pnl_usd": 35084.91033282721
       },
@@ -10072,7 +10072,7 @@
         "pnl_usd": -265.0,
         "trade_profit_usd": -265.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616790+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315584+00:00",
         "cumulative_pnl_pct": 69.63982066565441,
         "cumulative_pnl_usd": 34819.91033282721
       },
@@ -10101,7 +10101,7 @@
         "pnl_usd": 370.0,
         "trade_profit_usd": 370.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.617165+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315979+00:00",
         "cumulative_pnl_pct": 70.3798206656544,
         "cumulative_pnl_usd": 35189.91033282721
       },
@@ -10130,9 +10130,125 @@
         "pnl_usd": 170.0,
         "trade_profit_usd": 170.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.617415+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.316228+00:00",
         "cumulative_pnl_pct": 70.71982066565441,
         "cumulative_pnl_usd": 35359.91033282721
+      },
+      {
+        "trade_id": "1778459700|LONG",
+        "entry_unix": 1778459700,
+        "entry_et": "2026-05-10 20:35:00 ET",
+        "entry_time_et": "2026-05-10 20:35:00 ET",
+        "entry_price": 29385.75,
+        "exit_unix": 1778460600,
+        "exit_et": "2026-05-10 20:50:00 ET",
+        "exit_time_et": "2026-05-10 20:50:00 ET",
+        "exit_price": 29360.75,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 3,
+        "minutes_held": 15.0,
+        "stop_price_at_entry": 29360.75,
+        "max_adverse_excursion_usd": -2155.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "loss_cap",
+        "pnl_pct": -1.0,
+        "trade_profit_pct": -1.0,
+        "pnl_usd": -500.0,
+        "trade_profit_usd": -500.0,
+        "result": "LOSS",
+        "updated_at_utc": "2026-05-11T01:23:54.316679+00:00",
+        "cumulative_pnl_pct": 69.71982066565441,
+        "cumulative_pnl_usd": 34859.91033282721
+      },
+      {
+        "trade_id": "1778460600|LONG",
+        "entry_unix": 1778460600,
+        "entry_et": "2026-05-10 20:50:00 ET",
+        "entry_time_et": "2026-05-10 20:50:00 ET",
+        "entry_price": 29297.75,
+        "exit_unix": 1778460900,
+        "exit_et": "2026-05-10 20:55:00 ET",
+        "exit_time_et": "2026-05-10 20:55:00 ET",
+        "exit_price": 29272.75,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 1,
+        "minutes_held": 5.0,
+        "stop_price_at_entry": 29272.75,
+        "max_adverse_excursion_usd": -660.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "loss_cap",
+        "pnl_pct": -1.0,
+        "trade_profit_pct": -1.0,
+        "pnl_usd": -500.0,
+        "trade_profit_usd": -500.0,
+        "result": "LOSS",
+        "updated_at_utc": "2026-05-11T01:23:54.316708+00:00",
+        "cumulative_pnl_pct": 68.71982066565441,
+        "cumulative_pnl_usd": 34359.91033282721
+      },
+      {
+        "trade_id": "1778460900|LONG",
+        "entry_unix": 1778460900,
+        "entry_et": "2026-05-10 20:55:00 ET",
+        "entry_time_et": "2026-05-10 20:55:00 ET",
+        "entry_price": 29295.0,
+        "exit_unix": 1778461200,
+        "exit_et": "2026-05-10 21:00:00 ET",
+        "exit_time_et": "2026-05-10 21:00:00 ET",
+        "exit_price": 29270.0,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 1,
+        "minutes_held": 5.0,
+        "stop_price_at_entry": 29270.0,
+        "max_adverse_excursion_usd": -870.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "loss_cap",
+        "pnl_pct": -1.0,
+        "trade_profit_pct": -1.0,
+        "pnl_usd": -500.0,
+        "trade_profit_usd": -500.0,
+        "result": "LOSS",
+        "updated_at_utc": "2026-05-11T01:23:54.316735+00:00",
+        "cumulative_pnl_pct": 67.71982066565441,
+        "cumulative_pnl_usd": 33859.91033282721
+      },
+      {
+        "trade_id": "1778461200|LONG",
+        "entry_unix": 1778461200,
+        "entry_et": "2026-05-10 21:00:00 ET",
+        "entry_time_et": "2026-05-10 21:00:00 ET",
+        "entry_price": 29257.5,
+        "exit_unix": 1778461800,
+        "exit_et": "2026-05-10 21:10:00 ET",
+        "exit_time_et": "2026-05-10 21:10:00 ET",
+        "exit_price": 29292.25,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 2,
+        "minutes_held": 10.0,
+        "stop_price_at_entry": 29232.5,
+        "max_adverse_excursion_usd": -250.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "signal_flat",
+        "pnl_pct": 1.39,
+        "trade_profit_pct": 1.39,
+        "pnl_usd": 695.0,
+        "trade_profit_usd": 695.0,
+        "result": "WIN",
+        "updated_at_utc": "2026-05-11T01:23:54.316774+00:00",
+        "cumulative_pnl_pct": 69.10982066565441,
+        "cumulative_pnl_usd": 34554.91033282721
       }
     ],
     "recent": [
@@ -15014,7 +15130,7 @@
         "pnl_usd": 1375.0,
         "trade_profit_usd": 1375.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.596866+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.295436+00:00",
         "cumulative_pnl_pct": 44.43719516451541,
         "cumulative_pnl_usd": 22218.5975822577
       },
@@ -15085,7 +15201,7 @@
         "pnl_usd": 255.0,
         "trade_profit_usd": 255.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.597255+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.295823+00:00",
         "cumulative_pnl_pct": 44.54165205232036,
         "cumulative_pnl_usd": 22270.82602616017
       },
@@ -15306,7 +15422,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.597886+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.296455+00:00",
         "cumulative_pnl_pct": 45.41477004064639,
         "cumulative_pnl_usd": 22707.385020323192
       },
@@ -15406,7 +15522,7 @@
         "pnl_usd": -240.0,
         "trade_profit_usd": -240.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.598273+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.296849+00:00",
         "cumulative_pnl_pct": 45.31203094953331,
         "cumulative_pnl_usd": 22656.01547476665
       },
@@ -15572,7 +15688,7 @@
         "pnl_usd": 425.0,
         "trade_profit_usd": 425.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.598481+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297050+00:00",
         "cumulative_pnl_pct": 46.76913420883756,
         "cumulative_pnl_usd": 23384.567104418777
       },
@@ -15601,7 +15717,7 @@
         "pnl_usd": -240.0,
         "trade_profit_usd": -240.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.598569+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297132+00:00",
         "cumulative_pnl_pct": 46.28913420883757,
         "cumulative_pnl_usd": 23144.567104418777
       },
@@ -15701,7 +15817,7 @@
         "pnl_usd": 920.0,
         "trade_profit_usd": 920.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599091+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297647+00:00",
         "cumulative_pnl_pct": 49.253183062478854,
         "cumulative_pnl_usd": 24626.591531239425
       },
@@ -15730,7 +15846,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.599151+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297704+00:00",
         "cumulative_pnl_pct": 48.253183062478854,
         "cumulative_pnl_usd": 24126.591531239425
       },
@@ -15759,7 +15875,7 @@
         "pnl_usd": 1055.0,
         "trade_profit_usd": 1055.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599215+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.297764+00:00",
         "cumulative_pnl_pct": 50.36318306247885,
         "cumulative_pnl_usd": 25181.591531239425
       },
@@ -15830,7 +15946,7 @@
         "pnl_usd": 2570.0,
         "trade_profit_usd": 2570.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599685+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.298238+00:00",
         "cumulative_pnl_pct": 55.67962379043752,
         "cumulative_pnl_usd": 27839.811895218754
       },
@@ -15859,7 +15975,7 @@
         "pnl_usd": 5.0,
         "trade_profit_usd": 5.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.599988+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.298537+00:00",
         "cumulative_pnl_pct": 55.689623790437516,
         "cumulative_pnl_usd": 27844.811895218754
       },
@@ -15917,7 +16033,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.600445+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.298997+00:00",
         "cumulative_pnl_pct": 60.13962379043752,
         "cumulative_pnl_usd": 30069.811895218754
       },
@@ -15946,7 +16062,7 @@
         "pnl_usd": 180.0,
         "trade_profit_usd": 180.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.600505+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.299053+00:00",
         "cumulative_pnl_pct": 60.49962379043752,
         "cumulative_pnl_usd": 30249.811895218754
       },
@@ -16857,7 +16973,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.603108+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.301713+00:00",
         "cumulative_pnl_pct": 63.60202079300484,
         "cumulative_pnl_usd": 31801.010396502414
       },
@@ -16886,7 +17002,7 @@
         "pnl_usd": -40.0,
         "trade_profit_usd": -40.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.603164+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.301764+00:00",
         "cumulative_pnl_pct": 63.52202079300484,
         "cumulative_pnl_usd": 31761.010396502414
       },
@@ -17131,7 +17247,7 @@
         "pnl_usd": 250.0,
         "trade_profit_usd": 250.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.603616+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.302223+00:00",
         "cumulative_pnl_pct": 70.20982066565443,
         "cumulative_pnl_usd": 35104.91033282721
       },
@@ -17160,7 +17276,7 @@
         "pnl_usd": 390.0,
         "trade_profit_usd": 390.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.603690+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.302302+00:00",
         "cumulative_pnl_pct": 70.98982066565443,
         "cumulative_pnl_usd": 35494.91033282721
       },
@@ -17189,7 +17305,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.603896+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.302489+00:00",
         "cumulative_pnl_pct": 69.98982066565443,
         "cumulative_pnl_usd": 34994.91033282721
       },
@@ -17392,7 +17508,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.604546+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303138+00:00",
         "cumulative_pnl_pct": 65.68982066565444,
         "cumulative_pnl_usd": 32844.91033282721
       },
@@ -17421,7 +17537,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.604586+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303173+00:00",
         "cumulative_pnl_pct": 64.68982066565444,
         "cumulative_pnl_usd": 32344.91033282721
       },
@@ -17450,7 +17566,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.604624+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303206+00:00",
         "cumulative_pnl_pct": 63.68982066565444,
         "cumulative_pnl_usd": 31844.91033282721
       },
@@ -17479,7 +17595,7 @@
         "pnl_usd": 75.0,
         "trade_profit_usd": 75.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.604661+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303239+00:00",
         "cumulative_pnl_pct": 63.839820665654436,
         "cumulative_pnl_usd": 31919.91033282721
       },
@@ -17508,7 +17624,7 @@
         "pnl_usd": 900.0,
         "trade_profit_usd": 900.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.604873+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303441+00:00",
         "cumulative_pnl_pct": 65.63982066565444,
         "cumulative_pnl_usd": 32819.91033282721
       },
@@ -17566,7 +17682,7 @@
         "pnl_usd": 290.0,
         "trade_profit_usd": 290.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.605013+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.303578+00:00",
         "cumulative_pnl_pct": 66.05982066565444,
         "cumulative_pnl_usd": 33029.91033282721
       },
@@ -17914,7 +18030,7 @@
         "pnl_usd": -70.0,
         "trade_profit_usd": -70.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.605621+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.304195+00:00",
         "cumulative_pnl_pct": 65.28982066565443,
         "cumulative_pnl_usd": 32644.91033282721
       },
@@ -18088,7 +18204,7 @@
         "pnl_usd": 970.0,
         "trade_profit_usd": 970.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.606049+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.304612+00:00",
         "cumulative_pnl_pct": 72.16982066565443,
         "cumulative_pnl_usd": 36084.91033282721
       },
@@ -18117,7 +18233,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.606095+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.304655+00:00",
         "cumulative_pnl_pct": 71.16982066565443,
         "cumulative_pnl_usd": 35584.91033282721
       },
@@ -18233,7 +18349,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.606514+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305082+00:00",
         "cumulative_pnl_pct": 68.54982066565442,
         "cumulative_pnl_usd": 34274.91033282721
       },
@@ -18262,7 +18378,7 @@
         "pnl_usd": 975.0,
         "trade_profit_usd": 975.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.606624+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305190+00:00",
         "cumulative_pnl_pct": 70.49982066565443,
         "cumulative_pnl_usd": 35249.91033282721
       },
@@ -18291,7 +18407,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.606659+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305223+00:00",
         "cumulative_pnl_pct": 69.49982066565443,
         "cumulative_pnl_usd": 34749.91033282721
       },
@@ -18320,7 +18436,7 @@
         "pnl_usd": 430.0,
         "trade_profit_usd": 430.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.606702+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.305305+00:00",
         "cumulative_pnl_pct": 70.35982066565442,
         "cumulative_pnl_usd": 35179.91033282721
       },
@@ -18726,7 +18842,7 @@
         "pnl_usd": -340.0,
         "trade_profit_usd": -340.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.608308+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.306996+00:00",
         "cumulative_pnl_pct": 65.89982066565442,
         "cumulative_pnl_usd": 32949.91033282721
       },
@@ -18755,7 +18871,7 @@
         "pnl_usd": 375.0,
         "trade_profit_usd": 375.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.608665+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307418+00:00",
         "cumulative_pnl_pct": 66.64982066565442,
         "cumulative_pnl_usd": 33324.91033282721
       },
@@ -18784,7 +18900,7 @@
         "pnl_usd": 580.0,
         "trade_profit_usd": 580.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.608781+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307518+00:00",
         "cumulative_pnl_pct": 67.80982066565441,
         "cumulative_pnl_usd": 33904.91033282721
       },
@@ -18813,7 +18929,7 @@
         "pnl_usd": 165.0,
         "trade_profit_usd": 165.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.608868+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307597+00:00",
         "cumulative_pnl_pct": 68.13982066565441,
         "cumulative_pnl_usd": 34069.91033282721
       },
@@ -18842,7 +18958,7 @@
         "pnl_usd": -15.0,
         "trade_profit_usd": -15.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.609264+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.307990+00:00",
         "cumulative_pnl_pct": 68.10982066565441,
         "cumulative_pnl_usd": 34054.91033282721
       },
@@ -18871,7 +18987,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.609332+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.308052+00:00",
         "cumulative_pnl_pct": 67.10982066565441,
         "cumulative_pnl_usd": 33554.91033282721
       },
@@ -18900,7 +19016,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.609361+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.308081+00:00",
         "cumulative_pnl_pct": 66.10982066565441,
         "cumulative_pnl_usd": 33054.91033282721
       },
@@ -18929,7 +19045,7 @@
         "pnl_usd": 645.0,
         "trade_profit_usd": 645.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.609908+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.308630+00:00",
         "cumulative_pnl_pct": 67.39982066565442,
         "cumulative_pnl_usd": 33699.91033282721
       },
@@ -18958,7 +19074,7 @@
         "pnl_usd": 330.0,
         "trade_profit_usd": 330.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.612450+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.311262+00:00",
         "cumulative_pnl_pct": 68.05982066565441,
         "cumulative_pnl_usd": 34029.91033282721
       },
@@ -18987,7 +19103,7 @@
         "pnl_usd": 1885.0,
         "trade_profit_usd": 1885.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.612702+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.311521+00:00",
         "cumulative_pnl_pct": 71.82982066565441,
         "cumulative_pnl_usd": 35914.91033282721
       },
@@ -19016,7 +19132,7 @@
         "pnl_usd": 200.0,
         "trade_profit_usd": 200.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.613043+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.311850+00:00",
         "cumulative_pnl_pct": 72.22982066565442,
         "cumulative_pnl_usd": 36114.91033282721
       },
@@ -19074,7 +19190,7 @@
         "pnl_usd": -375.0,
         "trade_profit_usd": -375.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.613843+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.312661+00:00",
         "cumulative_pnl_pct": 71.47982066565442,
         "cumulative_pnl_usd": 35739.91033282721
       },
@@ -19161,7 +19277,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.614599+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313419+00:00",
         "cumulative_pnl_pct": 68.47982066565442,
         "cumulative_pnl_usd": 34239.91033282721
       },
@@ -19190,7 +19306,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.614635+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313452+00:00",
         "cumulative_pnl_pct": 67.47982066565442,
         "cumulative_pnl_usd": 33739.91033282721
       },
@@ -19219,7 +19335,7 @@
         "pnl_usd": 975.0,
         "trade_profit_usd": 975.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.614683+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313497+00:00",
         "cumulative_pnl_pct": 69.42982066565442,
         "cumulative_pnl_usd": 34714.91033282721
       },
@@ -19306,7 +19422,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.614838+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313639+00:00",
         "cumulative_pnl_pct": 66.42982066565442,
         "cumulative_pnl_usd": 33214.91033282721
       },
@@ -19364,7 +19480,7 @@
         "pnl_usd": 680.0,
         "trade_profit_usd": 680.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.614915+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.313714+00:00",
         "cumulative_pnl_pct": 69.72982066565442,
         "cumulative_pnl_usd": 34864.91033282721
       },
@@ -19393,7 +19509,7 @@
         "pnl_usd": 175.0,
         "trade_profit_usd": 175.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.616010+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.314821+00:00",
         "cumulative_pnl_pct": 70.07982066565441,
         "cumulative_pnl_usd": 35039.91033282721
       },
@@ -19422,7 +19538,7 @@
         "pnl_usd": 1200.0,
         "trade_profit_usd": 1200.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.616219+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315033+00:00",
         "cumulative_pnl_pct": 72.47982066565442,
         "cumulative_pnl_usd": 36239.91033282721
       },
@@ -19451,7 +19567,7 @@
         "pnl_usd": -155.0,
         "trade_profit_usd": -155.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616647+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315472+00:00",
         "cumulative_pnl_pct": 72.16982066565441,
         "cumulative_pnl_usd": 36084.91033282721
       },
@@ -19480,7 +19596,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616694+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315514+00:00",
         "cumulative_pnl_pct": 71.16982066565441,
         "cumulative_pnl_usd": 35584.91033282721
       },
@@ -19509,7 +19625,7 @@
         "pnl_usd": -500.0,
         "trade_profit_usd": -500.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616735+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315551+00:00",
         "cumulative_pnl_pct": 70.16982066565441,
         "cumulative_pnl_usd": 35084.91033282721
       },
@@ -19538,7 +19654,7 @@
         "pnl_usd": -265.0,
         "trade_profit_usd": -265.0,
         "result": "LOSS",
-        "updated_at_utc": "2026-05-10T23:29:08.616790+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315584+00:00",
         "cumulative_pnl_pct": 69.63982066565441,
         "cumulative_pnl_usd": 34819.91033282721
       },
@@ -19567,7 +19683,7 @@
         "pnl_usd": 370.0,
         "trade_profit_usd": 370.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.617165+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.315979+00:00",
         "cumulative_pnl_pct": 70.3798206656544,
         "cumulative_pnl_usd": 35189.91033282721
       },
@@ -19596,9 +19712,125 @@
         "pnl_usd": 170.0,
         "trade_profit_usd": 170.0,
         "result": "WIN",
-        "updated_at_utc": "2026-05-10T23:29:08.617415+00:00",
+        "updated_at_utc": "2026-05-11T01:23:54.316228+00:00",
         "cumulative_pnl_pct": 70.71982066565441,
         "cumulative_pnl_usd": 35359.91033282721
+      },
+      {
+        "trade_id": "1778459700|LONG",
+        "entry_unix": 1778459700,
+        "entry_et": "2026-05-10 20:35:00 ET",
+        "entry_time_et": "2026-05-10 20:35:00 ET",
+        "entry_price": 29385.75,
+        "exit_unix": 1778460600,
+        "exit_et": "2026-05-10 20:50:00 ET",
+        "exit_time_et": "2026-05-10 20:50:00 ET",
+        "exit_price": 29360.75,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 3,
+        "minutes_held": 15.0,
+        "stop_price_at_entry": 29360.75,
+        "max_adverse_excursion_usd": -2155.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "loss_cap",
+        "pnl_pct": -1.0,
+        "trade_profit_pct": -1.0,
+        "pnl_usd": -500.0,
+        "trade_profit_usd": -500.0,
+        "result": "LOSS",
+        "updated_at_utc": "2026-05-11T01:23:54.316679+00:00",
+        "cumulative_pnl_pct": 69.71982066565441,
+        "cumulative_pnl_usd": 34859.91033282721
+      },
+      {
+        "trade_id": "1778460600|LONG",
+        "entry_unix": 1778460600,
+        "entry_et": "2026-05-10 20:50:00 ET",
+        "entry_time_et": "2026-05-10 20:50:00 ET",
+        "entry_price": 29297.75,
+        "exit_unix": 1778460900,
+        "exit_et": "2026-05-10 20:55:00 ET",
+        "exit_time_et": "2026-05-10 20:55:00 ET",
+        "exit_price": 29272.75,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 1,
+        "minutes_held": 5.0,
+        "stop_price_at_entry": 29272.75,
+        "max_adverse_excursion_usd": -660.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "loss_cap",
+        "pnl_pct": -1.0,
+        "trade_profit_pct": -1.0,
+        "pnl_usd": -500.0,
+        "trade_profit_usd": -500.0,
+        "result": "LOSS",
+        "updated_at_utc": "2026-05-11T01:23:54.316708+00:00",
+        "cumulative_pnl_pct": 68.71982066565441,
+        "cumulative_pnl_usd": 34359.91033282721
+      },
+      {
+        "trade_id": "1778460900|LONG",
+        "entry_unix": 1778460900,
+        "entry_et": "2026-05-10 20:55:00 ET",
+        "entry_time_et": "2026-05-10 20:55:00 ET",
+        "entry_price": 29295.0,
+        "exit_unix": 1778461200,
+        "exit_et": "2026-05-10 21:00:00 ET",
+        "exit_time_et": "2026-05-10 21:00:00 ET",
+        "exit_price": 29270.0,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 1,
+        "minutes_held": 5.0,
+        "stop_price_at_entry": 29270.0,
+        "max_adverse_excursion_usd": -870.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "loss_cap",
+        "pnl_pct": -1.0,
+        "trade_profit_pct": -1.0,
+        "pnl_usd": -500.0,
+        "trade_profit_usd": -500.0,
+        "result": "LOSS",
+        "updated_at_utc": "2026-05-11T01:23:54.316735+00:00",
+        "cumulative_pnl_pct": 67.71982066565441,
+        "cumulative_pnl_usd": 33859.91033282721
+      },
+      {
+        "trade_id": "1778461200|LONG",
+        "entry_unix": 1778461200,
+        "entry_et": "2026-05-10 21:00:00 ET",
+        "entry_time_et": "2026-05-10 21:00:00 ET",
+        "entry_price": 29257.5,
+        "exit_unix": 1778461800,
+        "exit_et": "2026-05-10 21:10:00 ET",
+        "exit_time_et": "2026-05-10 21:10:00 ET",
+        "exit_price": 29292.25,
+        "direction": "LONG",
+        "entry_session_id": "2026-05-11",
+        "exit_session_id": "2026-05-11",
+        "bars_held": 2,
+        "minutes_held": 10.0,
+        "stop_price_at_entry": 29232.5,
+        "max_adverse_excursion_usd": -250.0,
+        "point_value_usd": 20.0,
+        "loss_cap_usd": 500.0,
+        "exit_reason": "signal_flat",
+        "pnl_pct": 1.39,
+        "trade_profit_pct": 1.39,
+        "pnl_usd": 695.0,
+        "trade_profit_usd": 695.0,
+        "result": "WIN",
+        "updated_at_utc": "2026-05-11T01:23:54.316774+00:00",
+        "cumulative_pnl_pct": 69.10982066565441,
+        "cumulative_pnl_usd": 34554.91033282721
       }
     ]
   },
@@ -19609,15 +19841,15 @@
     "loss_cap_violation_count": 0,
     "cross_session_violation_count": 0,
     "exit_reason_distribution": {
-      "signal_flat": 36,
-      "loss_cap": 18,
+      "signal_flat": 37,
+      "loss_cap": 21,
       "time_cap": 2
     }
   },
   "signal_mix": {
-    "buy": 0,
+    "buy": 2,
     "sell": 0,
-    "hold": 120
+    "hold": 118
   },
   "signal_mix_lookback_bars": 120,
   "config": {
@@ -19627,10 +19859,10 @@
   "pdf_trend": {
     "bias": 1,
     "momentum_lookback_days": 63,
-    "momentum_return_pct": 15.714482921826933,
-    "realized_ann_vol_pct": 15.565633045196952,
+    "momentum_return_pct": 15.525163682259201,
+    "realized_ann_vol_pct": 15.670914786892059,
     "target_ann_vol_pct": 12.0,
-    "target_leverage": 0.7709291337625879
+    "target_leverage": 0.7657498086861785
   },
   "repo_sources": [
     {
@@ -19771,7 +20003,7 @@
     "fit_type": "gaussian",
     "confidence": 0.95,
     "scenario_count": 600,
-    "covariance_trace": 7.721984847249813e-05,
+    "covariance_trace": 7.720443765636203e-05,
     "optimal_weights": [
       {
         "symbol": "ES",
@@ -19797,33 +20029,33 @@
     "frontier": [
       {
         "risk_aversion": 0.5,
-        "expected_return_pct": 0.23173906726463941,
-        "cvar_loss_pct": 0.13841683221132106,
-        "objective": -0.0006623740242278054
+        "expected_return_pct": 0.23168947935373324,
+        "cvar_loss_pct": 0.13840144409199956,
+        "objective": -0.000662303441055673
       },
       {
         "risk_aversion": 1.0,
-        "expected_return_pct": 0.16378218069573855,
-        "cvar_loss_pct": 0.13738822240813567,
-        "objective": -0.001352884508607544
+        "expected_return_pct": 0.1637396938609705,
+        "cvar_loss_pct": 0.13737277392913896,
+        "objective": -0.0013527354708476756
       },
       {
         "risk_aversion": 2.0,
-        "expected_return_pct": 0.16378218069573855,
-        "cvar_loss_pct": 0.13738822240813567,
-        "objective": -0.0027267667326889007
+        "expected_return_pct": 0.1637396938609705,
+        "cvar_loss_pct": 0.13737277392913896,
+        "objective": -0.002726463210139065
       },
       {
         "risk_aversion": 3.0,
-        "expected_return_pct": 0.16378218069573855,
-        "cvar_loss_pct": 0.13738822240813567,
-        "objective": -0.004100648956770257
+        "expected_return_pct": 0.1637396938609705,
+        "cvar_loss_pct": 0.13737277392913896,
+        "objective": -0.0041001909494304545
       },
       {
         "risk_aversion": 4.0,
-        "expected_return_pct": 0.16378218069573855,
-        "cvar_loss_pct": 0.13738822240813567,
-        "objective": -0.0054745311808516136
+        "expected_return_pct": 0.1637396938609705,
+        "cvar_loss_pct": 0.13737277392913896,
+        "objective": -0.005473918688721845
       }
     ],
     "window_start": "2026-03-02T08:15:00+00:00",
